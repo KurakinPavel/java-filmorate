@@ -14,7 +14,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = DateValidator.class)
 @Documented
 public @interface IsAfter {
-    String message() default "дата релиза — не раньше 28 декабря 1895 года";
+    String message() default "{IsAfter.message}";
     String current();
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

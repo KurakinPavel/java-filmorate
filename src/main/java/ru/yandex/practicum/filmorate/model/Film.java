@@ -16,7 +16,7 @@ public class Film {
     protected int id;
     @NotBlank
     protected String name;
-    @NotBlank @Size(max = 200)
+    @NotBlank @Size(min = 1, max = 200)
     protected String description;
     @IsAfter(current = "1895-12-27")
     protected LocalDate releaseDate;

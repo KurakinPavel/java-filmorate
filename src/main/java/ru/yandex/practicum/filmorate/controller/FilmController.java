@@ -28,7 +28,7 @@ public class FilmController {
     public Film create(@Valid @RequestBody Film film) {
         film.setId(++numerator);
         films.put(numerator, film);
-        log.info("Добавлен новый фильм с id " + film.getId() + " и названием " + film.getName());
+        log.info("Добавлен новый фильм с id {} и названием {}", film.getId(), film.getName());
         return film;
     }
 
@@ -37,15 +37,14 @@ public class FilmController {
         if (film.getId() == 0) {
             film.setId(++numerator);
             films.put(numerator, film);
-            log.info("Добавлен новый фильм с id " + film.getId() + " и названием " + film.getName());
+            log.info("Добавлен новый фильм с id {} и названием {}", film.getId(), film.getName());
         } else if (!films.containsKey(film.getId())) {
             throw new NoSuchElementException("Фильм с id " + film.getId() + " и названием " + film.getName() +
                     " не найден. Обновление отклонено.");
         } else {
             films.put(film.getId(), film);
-            log.info("Обновлены данные фильма с id " + film.getId() + " и названием " + film.getName());
+            log.info("Обновлены данные фильма с id {} и названием {}", film.getId(), film.getName());
         }
         return film;
     }
-
 }

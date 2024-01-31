@@ -3,20 +3,24 @@ package ru.yandex.practicum.filmorate.validator;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class DateValidator implements ConstraintValidator<IsAfter, LocalDate> {
 
-    String validDate;
+    LocalDate validDate;
 
     @Override
     public void initialize(IsAfter constraintAnnotation) {
-        validDate = constraintAnnotation.current();
+        validDate = LocalDate.parse(constraintAnnotation.current(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     @Override
     public boolean isValid(LocalDate date, ConstraintValidatorContext constraintValidatorContext) {
-        String[] splitDate = validDate.split("-");
-        return date.isAfter(LocalDate.of(Integer.parseInt(splitDate[0]), Integer.parseInt(splitDate[1]),
-                Integer.parseInt(splitDate[2])));
+        if (!date.isAfter(validDate)) {
+            constraintValidatorContext.buildConstraintViolationWithTemplate("Дата релиза должна быть позже "
+                    + validDate).addConstraintViolation();
+            return false;
+        }
+        return true;
     }
 }

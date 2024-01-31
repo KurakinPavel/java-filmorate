@@ -28,7 +28,7 @@ public class UserController {
     public User create(@Valid @RequestBody User user) {
         user.setId(++numerator);
         users.put(numerator, user);
-        log.info("Добавлен новый пользователь с id " + user.getId() + " и логином " + user.getLogin());
+        log.info("Добавлен новый пользователь с id {} и логином {}", + user.getId(), user.getLogin());
         return user;
     }
 
@@ -37,13 +37,13 @@ public class UserController {
         if (user.getId() == 0) {
             user.setId(++numerator);
             users.put(numerator, user);
-            log.info("Добавлен новый пользователь с id " + user.getId() + " и логином " + user.getLogin());
+            log.info("Добавлен новый пользователь с id {} и логином {}", + user.getId(), user.getLogin());
         } else if (!users.containsKey(user.getId())) {
             throw new NoSuchElementException("Пользователь с id " + user.getId() + " и логином " + user.getLogin() +
                     " не найден. Обновление отклонено.");
         } else {
             users.put(user.getId(), user);
-            log.info("Обновлены данные пользователя с id " + user.getId() + " и логином " + user.getLogin());
+            log.info("Обновлены данные пользователя с id {} и логином {}", + user.getId(), user.getLogin());
         }
         return user;
     }
