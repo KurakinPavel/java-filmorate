@@ -13,8 +13,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = DateValidator.class)
 @Documented
-public @interface IsAfter {
-    String message() default "{IsAfter.message}";
+public @interface IsAfterDate {
+    String message() default "{IsAfterDate.message}";
     String current();
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

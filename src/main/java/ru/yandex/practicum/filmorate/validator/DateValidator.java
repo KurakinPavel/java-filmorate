@@ -5,12 +5,12 @@ import javax.validation.ConstraintValidatorContext;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-public class DateValidator implements ConstraintValidator<IsAfter, LocalDate> {
+public class DateValidator implements ConstraintValidator<IsAfterDate, LocalDate> {
 
     LocalDate validDate;
 
     @Override
-    public void initialize(IsAfter constraintAnnotation) {
+    public void initialize(IsAfterDate constraintAnnotation) {
         validDate = LocalDate.parse(constraintAnnotation.current(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 

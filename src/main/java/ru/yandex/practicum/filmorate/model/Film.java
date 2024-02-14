@@ -2,7 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ru.yandex.practicum.filmorate.validator.IsAfter;
+import ru.yandex.practicum.filmorate.validator.IsAfterDate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -18,7 +18,7 @@ public class Film {
     protected String name;
     @NotBlank @Size(min = 1, max = 200)
     protected String description;
-    @IsAfter(current = "1895-12-27")
+    @IsAfterDate(current = "1895-12-27")
     protected LocalDate releaseDate;
     @Positive
     protected int duration;
