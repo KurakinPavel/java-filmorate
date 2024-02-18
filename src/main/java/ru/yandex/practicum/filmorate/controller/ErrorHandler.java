@@ -23,7 +23,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNoSuchElementException (final NoSuchElementException e) {
+    public ErrorResponse handleNoSuchElementException(final NoSuchElementException e) {
         log.info(e.getMessage());
         return new ErrorResponse(e.getMessage());
     }
