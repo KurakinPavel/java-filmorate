@@ -3,9 +3,12 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import javax.validation.Valid;
 import java.util.*;
 
 @Slf4j
@@ -16,6 +19,22 @@ public class UserService {
     @Autowired
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
+    }
+
+    public List<User> findAll() {
+        return userStorage.findAll();
+    }
+
+    public User create(User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        return userStorage.update(user);
+    }
+
+    public User getUser(int id) {
+        return userStorage.getUser(id);
     }
 
     public Map<String, String> addInFriends(int id, int friendId) {
@@ -30,14 +49,10 @@ public class UserService {
     public Map<String, String> removeFromFriends(int id, int friendId) {
         Set<Integer> userFriends = userStorage.getUser(id).getFriends();
         Set<Integer> friendFriends = userStorage.getUser(friendId).getFriends();
-        if (userFriends.contains(friendId) && friendFriends.contains(id)) {
-            userFriends.remove(friendId);
-            friendFriends.remove(id);
-            log.info("Пользователи с id {} и {} больше не друзья", id, friendId);
-            return Map.of("result", "Пользователи с id " + id + " и " + friendId + " больше не друзья");
-        } else {
-            throw new NoSuchElementException("Пользователи с id " + id + " и " + friendId + " не были друзьями");
-        }
+        userFriends.remove(friendId);
+        friendFriends.remove(id);
+        log.info("Пользователи с id {} и {} больше не друзья", id, friendId);
+        return Map.of("result", "Пользователи с id " + id + " и " + friendId + " больше не друзья");
     }
 
     public List<User> getFriendsOfUser(int id) {

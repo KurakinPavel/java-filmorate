@@ -12,33 +12,31 @@ import java.util.*;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
 
     @Autowired
-    public FilmController(FilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping
     public List<Film> findAll() {
-        return filmStorage.findAll();
+        return filmService.findAll();
     }
 
     @PostMapping
     public Film create(@RequestBody @Valid Film film) {
-        return filmStorage.create(film);
+        return filmService.create(film);
     }
 
     @PutMapping
     public Film update(@RequestBody @Valid Film film) {
-        return filmStorage.update(film);
+        return filmService.update(film);
     }
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable Integer id) {
-        return filmStorage.getFilm(id);
+        return filmService.getFilm(id);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -54,7 +52,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10", required = false) Integer count) {
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") Integer count) {
         return filmService.getPopularFilms(count);
     }
 }
