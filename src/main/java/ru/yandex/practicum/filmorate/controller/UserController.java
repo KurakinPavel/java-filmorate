@@ -1,50 +1,66 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import javax.validation.Valid;
 import java.util.*;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UserController {
-    protected int numerator;
-    protected final Map<Integer, User> users;
+    private final UserStorage userStorage;
+    private final UserService userService;
 
-    public UserController() {
-        numerator = 0;
-        users = new HashMap<>();
+    @Autowired
+    public UserController(UserStorage userStorage, UserService userService) {
+        this.userStorage = userStorage;
+        this.userService = userService;
     }
 
     @GetMapping
     public List<User> findAll() {
-        return new ArrayList<>(users.values());
+        return userStorage.findAll();
     }
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        user.setId(++numerator);
-        users.put(numerator, user);
-        log.info("Добавлен новый пользователь с id {} и логином {}", + user.getId(), user.getLogin());
-        return user;
+        return userStorage.create(user);
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        if (user.getId() == 0) {
-            user.setId(++numerator);
-            users.put(numerator, user);
-            log.info("Добавлен новый пользователь с id {} и логином {}", + user.getId(), user.getLogin());
-        } else if (!users.containsKey(user.getId())) {
-            throw new NoSuchElementException("Пользователь с id " + user.getId() + " и логином " + user.getLogin() +
-                    " не найден. Обновление отклонено.");
-        } else {
-            users.put(user.getId(), user);
-            log.info("Обновлены данные пользователя с id {} и логином {}", + user.getId(), user.getLogin());
-        }
-        return user;
+        return userStorage.update(user);
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Integer id) {
+        return userStorage.getUser(id);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public Map<String, String> addInFriends(@PathVariable Integer id,
+                                            @PathVariable Integer friendId) {
+        return userService.addInFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public Map<String, String> removeFromFriends(@PathVariable Integer id,
+                                                 @PathVariable Integer friendId) {
+        return userService.removeFromFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendsOfUser(@PathVariable Integer id) {
+        return userService.getFriendsOfUser(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable Integer id,
+                                       @PathVariable Integer otherId) {
+        return userService.getCommonFriends(id, otherId);
     }
 }
