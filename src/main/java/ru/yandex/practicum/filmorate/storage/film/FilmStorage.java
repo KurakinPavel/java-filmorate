@@ -7,8 +7,12 @@ import java.util.List;
 
 @Component
 public interface FilmStorage {
+
     List<Film> findAll();
+
     Film getFilm(int id);
+
     Film create(Film film);
+
     Film update(Film film);
 }
