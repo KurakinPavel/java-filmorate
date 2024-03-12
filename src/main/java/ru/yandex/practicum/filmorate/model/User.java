@@ -6,7 +6,9 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -35,4 +37,14 @@ public class User {
         if (name == null || name.isEmpty()) return login;
         return name;
     }
+
+    public Map<String, Object> userToMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("EMAIL", email);
+        values.put("LOGIN", login);
+        values.put("NAME", name);
+        values.put("BIRTHDAY", birthday);
+        return values;
+    }
+
 }

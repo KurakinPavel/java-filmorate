@@ -3,10 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.IdAndNameContainer;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.storage.source.SourceStorage;
 
 import java.util.*;
 
@@ -14,12 +15,12 @@ import java.util.*;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final SourceStorage sourceStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(FilmStorage filmStorage, SourceStorage sourceStorage) {
         this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+        this.sourceStorage = sourceStorage;
     }
 
     public List<Film> findAll() {
@@ -27,10 +28,27 @@ public class FilmService {
     }
 
     public Film create(Film film) {
+        validateGenreAndMPA(film);
         return filmStorage.create(film);
     }
 
+    private void validateGenreAndMPA(Film film) {
+        try {
+            IdAndNameContainer containerMPA = sourceStorage.getMPA(film.getMpa().getId());
+            if (film.getGenres() != null) {
+                List<Integer> genresInInt = film.genresToInt();
+                for (int genreId : genresInInt) {
+                    IdAndNameContainer containerGenre = sourceStorage.getGenre(genreId);
+                }
+            }
+        } catch (NoSuchElementException exception) {
+            throw new IllegalArgumentException("Фильм с названием '" + film.getName() + "' не создан. "
+                    + exception.getMessage());
+        }
+    }
+
     public Film update(Film film) {
+        validateGenreAndMPA(film);
         return filmStorage.update(film);
     }
 
@@ -39,22 +57,15 @@ public class FilmService {
     }
 
     public Map<String, String> addLike(int id, int userId) {
-        User user = userStorage.getUser(userId);
-        Set<Integer> filmLikes = filmStorage.getFilm(id).getLikes();
-        filmLikes.add(userId);
-        log.info("Пользователь с id {} поставил лайк фильму с id {}", userId, id);
-        return Map.of("result", "Пользователь с id " + userId + " поставил лайк фильму с id " + id);
+        return filmStorage.addLike(id, userId);
     }
 
     public Map<String, String> removeLike(int id, int userId) {
-        User user = userStorage.getUser(userId);
-        Set<Integer> filmLikes = filmStorage.getFilm(id).getLikes();
-        filmLikes.remove(userId);
-        log.info("Пользователь с id {} удалил лайк фильму с id {}", userId, id);
-        return Map.of("result", "Пользователь с id " + userId + " удалил лайк фильму с id " + id);
+        return filmStorage.removeLike(id, userId);
     }
 
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getPopularFilms(count);
     }
+
 }

@@ -35,41 +35,19 @@ public class UserService {
     }
 
     public Map<String, String> addInFriends(int id, int friendId) {
-        Set<Integer> userFriends = userStorage.getUser(id).getFriends();
-        Set<Integer> friendFriends = userStorage.getUser(friendId).getFriends();
-        userFriends.add(friendId);
-        friendFriends.add(id);
-        log.info("Пользователи с id {} и {} теперь друзья", id, friendId);
-        return Map.of("result", "Пользователи с id " + id + " и " + friendId + " теперь друзья");
+        return userStorage.addInFriends(id, friendId);
     }
 
     public Map<String, String> removeFromFriends(int id, int friendId) {
-        Set<Integer> userFriends = userStorage.getUser(id).getFriends();
-        Set<Integer> friendFriends = userStorage.getUser(friendId).getFriends();
-        userFriends.remove(friendId);
-        friendFriends.remove(id);
-        log.info("Пользователи с id {} и {} больше не друзья", id, friendId);
-        return Map.of("result", "Пользователи с id " + id + " и " + friendId + " больше не друзья");
+        return userStorage.removeFromFriends(id, friendId);
     }
 
     public List<User> getFriendsOfUser(int id) {
-        Set<Integer> userFriends = userStorage.getUser(id).getFriends();
-        List<User> friends = new ArrayList<>();
-        for (int friendId : userFriends) {
-            friends.add(userStorage.getUser(friendId));
-        }
-        return friends;
+        return userStorage.getFriendsOfUser(id);
     }
 
     public List<User> getCommonFriends(int id, int otherId) {
-        Set<Integer> userFriends = userStorage.getUser(id).getFriends();
-        Set<Integer> otherUserFriends = userStorage.getUser(otherId).getFriends();
-        Set<Integer> intersection = new HashSet<>(userFriends);
-        intersection.retainAll(otherUserFriends);
-        List<User> commonFriends = new ArrayList<>();
-        for (int friendId : intersection) {
-            commonFriends.add(userStorage.getUser(friendId));
-        }
-        return commonFriends;
+        return userStorage.getCommonFriends(id, otherId);
     }
+
 }

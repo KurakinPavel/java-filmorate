@@ -52,4 +52,48 @@ public class InMemoryUserStorage implements UserStorage {
         }
         return user;
     }
+
+    @Override
+    public Map<String, String> addInFriends(int id, int friendId) {
+        User user = users.get(id);
+        Set<Integer> friendFriends = users.get(friendId).getFriends();
+        friendFriends.add(id);
+        log.info("Пользователь с id {} добавился в друзья к пользователю с id {}", id, friendId);
+        return Map.of("result", "Пользователь с id " + id + " добавился в друзья к пользователю с id "
+                + friendId);
+    }
+
+    @Override
+    public Map<String, String> removeFromFriends(int id, int friendId) {
+        User user = users.get(id);
+        Set<Integer> friendFriends = users.get(friendId).getFriends();
+        friendFriends.remove(id);
+        log.info("Пользователь с id {} удалился из друзей у пользователя с id {}", id, friendId);
+        return Map.of("result", "Пользователь с id " + id + " удалился из друзей у пользователя с id "
+                + friendId);
+    }
+
+    @Override
+    public List<User> getFriendsOfUser(int id) {
+        Set<Integer> userFriends = users.get(id).getFriends();
+        List<User> friends = new ArrayList<>();
+        for (int friendId : userFriends) {
+            friends.add(users.get(friendId));
+        }
+        return friends;
+    }
+
+    @Override
+    public List<User> getCommonFriends(int id, int otherId) {
+        Set<Integer> userFriends = users.get(id).getFriends();
+        Set<Integer> otherUserFriends = users.get(otherId).getFriends();
+        Set<Integer> intersection = new HashSet<>(userFriends);
+        intersection.retainAll(otherUserFriends);
+        List<User> commonFriends = new ArrayList<>();
+        for (int friendId : intersection) {
+            commonFriends.add(users.get(friendId));
+        }
+        return commonFriends;
+    }
+
 }

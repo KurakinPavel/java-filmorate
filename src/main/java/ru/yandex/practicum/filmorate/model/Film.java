@@ -1,15 +1,16 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import ru.yandex.practicum.filmorate.validator.IsAfterDate;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
+@Slf4j
 @Data
 public class Film {
 
@@ -22,19 +23,42 @@ public class Film {
     protected LocalDate releaseDate;
     @Positive
     protected int duration;
+    protected IdContainer mpa;
     protected Set<Integer> likes;
+    protected List<IdContainer> genres;
 
-    public Film(int id, String name, String description, LocalDate releaseDate, int duration) {
+    public Film(int id, String name, String description,
+                LocalDate releaseDate, int duration, IdContainer mpa, List<IdContainer> genres) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.mpa = mpa;
+        this.genres = genres;
         likes = new HashSet<>();
+    }
+
+    public List<Integer> genresToInt() {
+        List<Integer> genresInInt = new ArrayList<>();
+        for (IdContainer genre : genres) {
+            genresInInt.add(genre.getId());
+        }
+        return genresInInt;
     }
 
     public int getLikesSize() {
         return getLikes().size();
+    }
+
+    public Map<String, Object> filmToMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("NAME", name);
+        values.put("DESCRIPTION", description);
+        values.put("RELEASE_DATE", releaseDate);
+        values.put("DURATION", duration);
+        values.put("MPA_ID", mpa.getId());
+        return values;
     }
 
 }
