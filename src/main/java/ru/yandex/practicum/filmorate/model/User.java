@@ -46,5 +46,4 @@ public class User {
         values.put("BIRTHDAY", birthday);
         return values;
     }
-
 }
