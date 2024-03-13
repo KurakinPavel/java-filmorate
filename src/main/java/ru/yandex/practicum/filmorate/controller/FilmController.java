@@ -1,50 +1,57 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.*;
 
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
-    protected int numerator;
-    protected final Map<Integer, Film> films;
+    private final FilmService filmService;
 
-    public FilmController() {
-        numerator = 0;
-        films = new HashMap<>();
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
     }
 
     @GetMapping
     public List<Film> findAll() {
-        return new ArrayList<>(films.values());
+        return filmService.findAll();
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        film.setId(++numerator);
-        films.put(numerator, film);
-        log.info("Добавлен новый фильм с id {} и названием {}", film.getId(), film.getName());
-        return film;
+    public Film create(@RequestBody @Valid Film film) {
+        return filmService.create(film);
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        if (film.getId() == 0) {
-            film.setId(++numerator);
-            films.put(numerator, film);
-            log.info("Добавлен новый фильм с id {} и названием {}", film.getId(), film.getName());
-        } else if (!films.containsKey(film.getId())) {
-            throw new NoSuchElementException("Фильм с id " + film.getId() + " и названием " + film.getName() +
-                    " не найден. Обновление отклонено.");
-        } else {
-            films.put(film.getId(), film);
-            log.info("Обновлены данные фильма с id {} и названием {}", film.getId(), film.getName());
-        }
-        return film;
+    public Film update(@RequestBody @Valid Film film) {
+        return filmService.update(film);
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable Integer id) {
+        return filmService.getFilm(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public Map<String, String> addLike(@PathVariable Integer id,
+                                       @PathVariable Integer userId) {
+        return filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Map<String, String> removeLike(@PathVariable Integer id,
+                                          @PathVariable Integer userId) {
+        return filmService.removeLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") Integer count) {
+        return filmService.getPopularFilms(count);
     }
 }
