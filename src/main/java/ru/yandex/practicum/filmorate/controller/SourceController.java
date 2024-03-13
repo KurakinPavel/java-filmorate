@@ -37,6 +37,4 @@ public class SourceController {
     public IdAndNameContainer getMPA(@PathVariable Integer id) {
         return sourceService.getMPA(id);
     }
-
-
 }

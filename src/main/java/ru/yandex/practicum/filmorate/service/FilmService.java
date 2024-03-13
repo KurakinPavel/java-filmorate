@@ -66,5 +66,4 @@ public class FilmService {
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getPopularFilms(count);
     }
-
 }

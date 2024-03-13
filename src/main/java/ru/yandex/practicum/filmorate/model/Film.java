@@ -60,5 +60,4 @@ public class Film {
         values.put("MPA_ID", mpa.getId());
         return values;
     }
-
 }
