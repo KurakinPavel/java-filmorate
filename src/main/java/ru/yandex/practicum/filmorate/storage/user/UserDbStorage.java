@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -10,10 +9,10 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Primary
 public class UserDbStorage implements UserStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -127,11 +126,16 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getFriendsOfUser(int id) {
-        List<User> friends = new ArrayList<>();
-        for (int friendId : getFriendsId(id)) {
-            friends.add(getUser(friendId));
-        }
-        return friends;
+        List<Integer> userFriendsId = new ArrayList<>(getFriendsId(id));
+        SqlRowSet userFriendsRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE USER_ID IN"
+                + " (" + numbersInLine(userFriendsId) + ")");
+        return usersParsing(userFriendsRows);
+    }
+
+    private String numbersInLine(List<Integer> someNumbers) {
+        return someNumbers.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining(", "));
     }
 
     @Override
@@ -140,11 +144,10 @@ public class UserDbStorage implements UserStorage {
         Set<Integer> otherUserFriends = getFriendsId(otherId);
         Set<Integer> intersection = new HashSet<>(userFriends);
         intersection.retainAll(otherUserFriends);
-        List<User> commonFriends = new ArrayList<>();
-        for (int friendId : intersection) {
-            commonFriends.add(getUser(friendId));
-        }
-        return commonFriends;
+        List<Integer> commonFriendsId = new ArrayList<>(intersection);
+        SqlRowSet commonFriendsRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE USER_ID IN"
+                + " (" + numbersInLine(commonFriendsId) + ")");
+        return usersParsing(commonFriendsRows);
     }
 
     private Set<Integer> getFriendsId(int id) {

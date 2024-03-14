@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class IdAndNameContainer {
+public class Genre {
     protected int id;
     protected String name;
 }

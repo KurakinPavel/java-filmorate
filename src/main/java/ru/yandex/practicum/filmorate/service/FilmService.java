@@ -4,9 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.IdAndNameContainer;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.source.SourceStorage;
+import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
+import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
 
 import java.util.*;
 
@@ -14,12 +15,14 @@ import java.util.*;
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
-    private final SourceStorage sourceStorage;
+    private final MpaStorage mpaStorage;
+    private final GenreStorage genreStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, SourceStorage sourceStorage) {
+    public FilmService(FilmStorage filmStorage, MpaStorage mpaStorage, GenreStorage genreStorage) {
         this.filmStorage = filmStorage;
-        this.sourceStorage = sourceStorage;
+        this.mpaStorage = mpaStorage;
+        this.genreStorage = genreStorage;
     }
 
     public List<Film> findAll() {
@@ -33,12 +36,11 @@ public class FilmService {
 
     private void validateGenreAndMPA(Film film) {
         try {
-            IdAndNameContainer containerMPA = sourceStorage.getMPA(film.getMpa().getId());
+            Mpa mpa = mpaStorage.getMPA(film.getMpa().getId());
             if (film.getGenres() != null) {
                 List<Integer> genresInInt = film.genresToInt();
-                for (int genreId : genresInInt) {
-                    IdAndNameContainer containerGenre = sourceStorage.getGenre(genreId);
-                }
+                if (genresInInt.size() != genreStorage.someGenres(genresInInt).size())
+                    throw new NoSuchElementException("Переданы некорректные жанры.");
             }
         } catch (NoSuchElementException exception) {
             throw new IllegalArgumentException("Фильм с названием '" + film.getName() + "' не создан. "

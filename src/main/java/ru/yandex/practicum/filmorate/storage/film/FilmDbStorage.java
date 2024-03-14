@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -11,10 +10,10 @@ import ru.yandex.practicum.filmorate.model.IdContainer;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Primary
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -64,12 +63,13 @@ public class FilmDbStorage implements FilmStorage {
             mpa.setId(mpaId);
             String rowOfGenres = filmsRows.getString("GENRES_OF_FILM");
             assert rowOfGenres != null;
-            List<String> genreIds = new ArrayList<>(Arrays.asList(rowOfGenres.split((", "))));
+            List<Integer> genreIds = Arrays.stream(rowOfGenres.split((", ")))
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toList());
             List<IdContainer> genres = new ArrayList<>();
-            for (String genreId : genreIds) {
-                int itemId = Integer.parseInt(genreId);
+            for (int genreId : genreIds) {
                 IdContainer genre = new IdContainer();
-                genre.setId(itemId);
+                genre.setId(genreId);
                 genres.add(genre);
             }
             Film film = new Film(

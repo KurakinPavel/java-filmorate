@@ -187,5 +187,4 @@ class FilmDbStorageTest {
         Film updatedFilm = filmStorage.getFilm(id);
         Assertions.assertEquals(updatedFilm, newFilm2, "Созданный и обновлённый объекты не совпадают");
     }
-
 }

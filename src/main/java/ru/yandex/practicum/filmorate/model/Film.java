@@ -24,7 +24,6 @@ public class Film {
     @Positive
     protected int duration;
     protected IdContainer mpa;
-    protected Set<Integer> likes;
     protected List<IdContainer> genres;
 
     public Film(int id, String name, String description,
@@ -36,7 +35,6 @@ public class Film {
         this.duration = duration;
         this.mpa = mpa;
         this.genres = genres;
-        likes = new HashSet<>();
     }
 
     public List<Integer> genresToInt() {
@@ -45,10 +43,6 @@ public class Film {
             genresInInt.add(genre.getId());
         }
         return genresInInt;
-    }
-
-    public int getLikesSize() {
-        return getLikes().size();
     }
 
     public Map<String, Object> filmToMap() {
