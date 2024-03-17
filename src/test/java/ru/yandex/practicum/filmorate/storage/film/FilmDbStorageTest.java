@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.IdContainer;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
@@ -25,13 +23,10 @@ class FilmDbStorageTest {
     @Test
     void getFilmAndCreateFilmTest() {
         FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        IdContainer mpa1 = new IdContainer();
-        IdContainer genre11 = new IdContainer();
-        IdContainer genre12 = new IdContainer();
-        mpa1.setId(3);
-        genre11.setId(1);
-        genre12.setId(2);
-        List<IdContainer> genres1 = new ArrayList<>();
+        Mpa mpa1 = new Mpa(3, "PG-13");
+        Genre genre11 = new Genre(1, "Комедия");
+        Genre genre12 = new Genre(2, "Драма");
+        List<Genre> genres1 = new ArrayList<>();
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm = new Film(0, "Film1", "film is film of film great film 1",
@@ -44,26 +39,20 @@ class FilmDbStorageTest {
     @Test
     void findAll() {
         FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        IdContainer mpa1 = new IdContainer();
-        IdContainer genre11 = new IdContainer();
-        IdContainer genre12 = new IdContainer();
-        mpa1.setId(3);
-        genre11.setId(1);
-        genre12.setId(2);
-        List<IdContainer> genres1 = new ArrayList<>();
+        Mpa mpa1 = new Mpa(3, "PG-13");
+        Genre genre11 = new Genre(1, "Комедия");
+        Genre genre12 = new Genre(2, "Драма");
+        List<Genre> genres1 = new ArrayList<>();
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
                 LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
         filmStorage.create(newFilm1);
 
-        IdContainer mpa2 = new IdContainer();
-        IdContainer genre21 = new IdContainer();
-        IdContainer genre22 = new IdContainer();
-        mpa2.setId(2);
-        genre21.setId(3);
-        genre22.setId(4);
-        List<IdContainer> genres2 = new ArrayList<>();
+        Mpa mpa2 = new Mpa(2, "PG");
+        Genre genre21 = new Genre(3, "Мультфильм");
+        Genre genre22 = new Genre(4, "Триллер");
+        List<Genre> genres2 = new ArrayList<>();
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
@@ -92,13 +81,10 @@ class FilmDbStorageTest {
         userStorage.create(newUser3);
         int userId3 = newUser3.getId();
 
-        IdContainer mpa1 = new IdContainer();
-        IdContainer genre11 = new IdContainer();
-        IdContainer genre12 = new IdContainer();
-        mpa1.setId(3);
-        genre11.setId(1);
-        genre12.setId(2);
-        List<IdContainer> genres1 = new ArrayList<>();
+        Mpa mpa1 = new Mpa(3, "PG-13");
+        Genre genre11 = new Genre(1, "Комедия");
+        Genre genre12 = new Genre(2, "Драма");
+        List<Genre> genres1 = new ArrayList<>();
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
@@ -106,13 +92,10 @@ class FilmDbStorageTest {
         filmStorage.create(newFilm1);
         int filmId1 = newFilm1.getId();
 
-        IdContainer mpa2 = new IdContainer();
-        IdContainer genre21 = new IdContainer();
-        IdContainer genre22 = new IdContainer();
-        mpa2.setId(2);
-        genre21.setId(3);
-        genre22.setId(4);
-        List<IdContainer> genres2 = new ArrayList<>();
+        Mpa mpa2 = new Mpa(2, "PG");
+        Genre genre21 = new Genre(3, "Мультфильм");
+        Genre genre22 = new Genre(4, "Триллер");
+        List<Genre> genres2 = new ArrayList<>();
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
@@ -157,13 +140,10 @@ class FilmDbStorageTest {
     @Test
     void updateTest() {
         FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
-        IdContainer mpa1 = new IdContainer();
-        IdContainer genre11 = new IdContainer();
-        IdContainer genre12 = new IdContainer();
-        mpa1.setId(3);
-        genre11.setId(1);
-        genre12.setId(2);
-        List<IdContainer> genres1 = new ArrayList<>();
+        Mpa mpa1 = new Mpa(3, "PG-13");
+        Genre genre11 = new Genre(1, "Комедия");
+        Genre genre12 = new Genre(2, "Драма");
+        List<Genre> genres1 = new ArrayList<>();
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
@@ -171,13 +151,10 @@ class FilmDbStorageTest {
         filmStorage.create(newFilm1);
         int id = newFilm1.getId();
 
-        IdContainer mpa2 = new IdContainer();
-        IdContainer genre21 = new IdContainer();
-        IdContainer genre22 = new IdContainer();
-        mpa2.setId(2);
-        genre21.setId(3);
-        genre22.setId(4);
-        List<IdContainer> genres2 = new ArrayList<>();
+        Mpa mpa2 = new Mpa(2, "PG");
+        Genre genre21 = new Genre(3, "Мультфильм");
+        Genre genre22 = new Genre(4, "Триллер");
+        List<Genre> genres2 = new ArrayList<>();
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(id, "Film2", "film 2 is film of 2 film great film 2",

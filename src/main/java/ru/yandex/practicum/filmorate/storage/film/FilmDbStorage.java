@@ -6,11 +6,11 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.IdContainer;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -23,10 +23,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, "
-                + "f.RELEASE_DATE, f.DURATION, f.MPA_ID, (SELECT GROUP_CONCAT(fg.GENRE_ID SEPARATOR ', ') "
-                + "FROM FILM_GENRES fg GROUP BY FILM_ID HAVING fg.FILM_ID = f.FILM_ID) GENRES_OF_FILM FROM "
-                + "FILMS f WHERE f.FILM_ID = ?", id);
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " WHERE f.FILM_ID = ?", id);
         List<Film> oneFilm = filmsParsing(filmRows);
         if (oneFilm.size() == 1) {
             return oneFilm.get(0);
@@ -38,18 +35,28 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet("SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, "
-                + "f.RELEASE_DATE, f.DURATION, f.MPA_ID, (SELECT GROUP_CONCAT(fg.GENRE_ID SEPARATOR ', ') "
-                + "FROM FILM_GENRES fg GROUP BY FILM_ID HAVING fg.FILM_ID = f.FILM_ID) GENRES_OF_FILM FROM FILMS f");
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
         return filmsParsing(allFilmsRows);
+    }
+
+    /**
+     Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
+     Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1 и 2.
+    */
+    private String commonPartOfQuery() {
+        return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
+                "(SELECT GROUP_CONCAT(DISTINCT GENRES_OF_FILMS.idAndGenre SEPARATOR ';') FROM " +
+                "(SELECT DISTINCT CONCAT_WS(',',GENRE_ID,GENRE) AS idAndGenre, FILM_ID FROM (SELECT fg.FILM_ID, " +
+                "fg.GENRE_ID, g.GENRE FROM GENRES g INNER JOIN FILM_GENRES fg ON fg.GENRE_ID = g.GENRE_ID) " +
+                "WHERE GENRE_ID IN (SELECT GENRE_ID FROM FILM_GENRES fg)) GENRES_OF_FILMS INNER JOIN FILMS f2 " +
+                "ON GENRES_OF_FILMS.FILM_ID = f.FILM_ID) GENRES_FOR_PARSING " +
+                "FROM FILMS f INNER JOIN MPA m ON m.MPA_ID = f.MPA_ID";
     }
 
     @Override
     public List<Film> getPopularFilms(int count) {
-        SqlRowSet popularFilmsRows = jdbcTemplate.queryForRowSet("SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, " +
-                "f.RELEASE_DATE, f.DURATION, f.MPA_ID, (SELECT GROUP_CONCAT(fg.GENRE_ID SEPARATOR ', ') " +
-                "FROM FILM_GENRES fg GROUP BY FILM_ID HAVING fg.FILM_ID = f.FILM_ID) GENRES_OF_FILM " +
-                "FROM FILMS f INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+        SqlRowSet popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
+                " INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?", count);
         return filmsParsing(popularFilmsRows);
@@ -59,19 +66,12 @@ public class FilmDbStorage implements FilmStorage {
         List<Film> films = new ArrayList<>();
         while (filmsRows.next()) {
             int mpaId = Integer.parseInt(Objects.requireNonNull(filmsRows.getString("MPA_ID")));
-            IdContainer mpa = new IdContainer();
+            String mpaName = filmsRows.getString("MPA");
+            Mpa mpa = new Mpa(mpaId, mpaName);
             mpa.setId(mpaId);
-            String rowOfGenres = filmsRows.getString("GENRES_OF_FILM");
+            String rowOfGenres = filmsRows.getString("GENRES_FOR_PARSING");
             assert rowOfGenres != null;
-            List<Integer> genreIds = Arrays.stream(rowOfGenres.split((", ")))
-                    .map(Integer::valueOf)
-                    .collect(Collectors.toList());
-            List<IdContainer> genres = new ArrayList<>();
-            for (int genreId : genreIds) {
-                IdContainer genre = new IdContainer();
-                genre.setId(genreId);
-                genres.add(genre);
-            }
+            List<Genre> genres = genresParsing(rowOfGenres);
             Film film = new Film(
                     Integer.parseInt(Objects.requireNonNull(filmsRows.getString("FILM_ID"))),
                     filmsRows.getString("NAME"),
@@ -82,6 +82,19 @@ public class FilmDbStorage implements FilmStorage {
             films.add(film);
         }
         return films;
+    }
+
+    private List<Genre> genresParsing(String rowOfGenres) {
+        List<Genre> genres = new ArrayList<>();
+        String delimiter = ";";
+        String[] content = rowOfGenres.split(delimiter);
+        for (String line : content) {
+            String divider = ",";
+            String[] pair = line.split(divider);
+            Genre genre = new Genre(Integer.parseInt(pair[0]), pair[1]);
+            genres.add(genre);
+        }
+        return genres;
     }
 
     @Override

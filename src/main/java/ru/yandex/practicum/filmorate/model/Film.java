@@ -23,11 +23,11 @@ public class Film {
     protected LocalDate releaseDate;
     @Positive
     protected int duration;
-    protected IdContainer mpa;
-    protected List<IdContainer> genres;
+    protected Mpa mpa;
+    protected List<Genre> genres;
 
     public Film(int id, String name, String description,
-                LocalDate releaseDate, int duration, IdContainer mpa, List<IdContainer> genres) {
+                LocalDate releaseDate, int duration, Mpa mpa, List<Genre> genres) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -39,7 +39,7 @@ public class Film {
 
     public List<Integer> genresToInt() {
         List<Integer> genresInInt = new ArrayList<>();
-        for (IdContainer genre : genres) {
+        for (Genre genre : genres) {
             genresInInt.add(genre.getId());
         }
         return genresInInt;

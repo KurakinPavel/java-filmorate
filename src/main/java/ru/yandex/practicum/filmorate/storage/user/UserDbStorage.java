@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -9,7 +11,6 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -127,15 +128,21 @@ public class UserDbStorage implements UserStorage {
     @Override
     public List<User> getFriendsOfUser(int id) {
         List<Integer> userFriendsId = new ArrayList<>(getFriendsId(id));
-        SqlRowSet userFriendsRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE USER_ID IN"
-                + " (" + numbersInLine(userFriendsId) + ")");
-        return usersParsing(userFriendsRows);
+        return someUsers(userFriendsId);
     }
 
-    private String numbersInLine(List<Integer> someNumbers) {
-        return someNumbers.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
+    public List<User> someUsers(List<Integer> usersId) {
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        String sql = "SELECT * FROM USERS WHERE USER_ID IN (:values)";
+        MapSqlParameterSource parameters = new MapSqlParameterSource("values", usersId);
+
+        return namedParameterJdbcTemplate.query(
+                sql, parameters,
+                (rs, rowNow) -> new User(rs.getInt("USER_ID"),
+                        rs.getString("EMAIL"),
+                        rs.getString("LOGIN"),
+                        rs.getString("NAME"),
+                        LocalDate.parse(rs.getString("BIRTHDAY"))));
     }
 
     @Override
@@ -145,9 +152,7 @@ public class UserDbStorage implements UserStorage {
         Set<Integer> intersection = new HashSet<>(userFriends);
         intersection.retainAll(otherUserFriends);
         List<Integer> commonFriendsId = new ArrayList<>(intersection);
-        SqlRowSet commonFriendsRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE USER_ID IN"
-                + " (" + numbersInLine(commonFriendsId) + ")");
-        return usersParsing(commonFriendsRows);
+        return someUsers(commonFriendsId);
     }
 
     private Set<Integer> getFriendsId(int id) {

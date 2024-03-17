@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaStorage;
@@ -30,17 +30,19 @@ public class FilmService {
     }
 
     public Film create(Film film) {
-        validateGenreAndMPA(film);
+        setMpaAndGenres(film);
         return filmStorage.create(film);
     }
 
-    private void validateGenreAndMPA(Film film) {
+    private void setMpaAndGenres(Film film) {
         try {
-            Mpa mpa = mpaStorage.getMPA(film.getMpa().getId());
+            film.setMpa(mpaStorage.getMPA(film.getMpa().getId()));
             if (film.getGenres() != null) {
                 List<Integer> genresInInt = film.genresToInt();
-                if (genresInInt.size() != genreStorage.someGenres(genresInInt).size())
-                    throw new NoSuchElementException("Переданы некорректные жанры.");
+                List<Genre> genres = genreStorage.someGenres(genresInInt);
+                if (genresInInt.size() != genres.size())
+                    throw new NoSuchElementException("Переданы некорректные id жанров.");
+                film.setGenres(genres);
             }
         } catch (NoSuchElementException exception) {
             throw new IllegalArgumentException("Фильм с названием '" + film.getName() + "' не создан. "
@@ -49,7 +51,7 @@ public class FilmService {
     }
 
     public Film update(Film film) {
-        validateGenreAndMPA(film);
+        setMpaAndGenres(film);
         return filmStorage.update(film);
     }
 

@@ -2,15 +2,13 @@ package ru.yandex.practicum.filmorate.storage.genre;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -29,15 +27,13 @@ public class GenreDbStorage implements GenreStorage {
 
     @Override
     public List<Genre> someGenres(List<Integer> genresInInt) {
-        SqlRowSet someGenresRows = jdbcTemplate.queryForRowSet("SELECT * FROM GENRES WHERE GENRE_ID IN"
-                + " (" + numbersInLine(genresInInt) + ")");
-        return genresParsing(someGenresRows);
-    }
+        NamedParameterJdbcTemplate namedTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        String sql = "SELECT GENRE_ID, GENRE FROM GENRES WHERE GENRE_ID IN (:values)";
+        MapSqlParameterSource parameters = new MapSqlParameterSource("values", genresInInt);
 
-    private String numbersInLine(List<Integer> someNumbers) {
-        return someNumbers.stream()
-                .map(Object::toString)
-                .collect(Collectors.joining(", "));
+        return namedTemplate.query(
+                sql, parameters,
+                (rs, rowNow) -> new Genre(rs.getInt("GENRE_ID"), rs.getString("GENRE")));
     }
 
     @Override
