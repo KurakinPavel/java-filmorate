@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public interface FilmStorage {
@@ -17,4 +18,9 @@ public interface FilmStorage {
     Film update(Film film);
 
     List<Film> getPopularFilms(int count);
+
+    Map<String, String> addLike(int id, int userId);
+
+    Map<String, String> removeLike(int id, int userId);
+
 }
