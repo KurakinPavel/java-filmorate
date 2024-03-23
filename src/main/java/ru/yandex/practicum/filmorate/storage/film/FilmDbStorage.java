@@ -35,22 +35,21 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " ORDER BY FILM_ID");
         return filmsParsing(allFilmsRows);
     }
 
     /**
      Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
-     Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1 и 2.
+     Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
     */
     private String commonPartOfQuery() {
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
-                "(SELECT GROUP_CONCAT(DISTINCT GENRES_OF_FILMS.idAndGenre SEPARATOR ';') FROM " +
-                "(SELECT DISTINCT CONCAT_WS(',',GENRE_ID,GENRE) AS idAndGenre, FILM_ID FROM (SELECT fg.FILM_ID, " +
-                "fg.GENRE_ID, g.GENRE FROM GENRES g INNER JOIN FILM_GENRES fg ON fg.GENRE_ID = g.GENRE_ID) " +
-                "WHERE GENRE_ID IN (SELECT GENRE_ID FROM FILM_GENRES fg)) GENRES_OF_FILMS INNER JOIN FILMS f2 " +
-                "ON GENRES_OF_FILMS.FILM_ID = f.FILM_ID) GENRES_FOR_PARSING " +
-                "FROM FILMS f INNER JOIN MPA m ON m.MPA_ID = f.MPA_ID";
+                "GENRES_FOR_PARSING FROM FILMS f JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
+                "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
+                "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
+                "g.GENRE_ID)) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
+                "ON m.MPA_ID = f.MPA_ID";
     }
 
     @Override
@@ -68,7 +67,6 @@ public class FilmDbStorage implements FilmStorage {
             int mpaId = Integer.parseInt(Objects.requireNonNull(filmsRows.getString("MPA_ID")));
             String mpaName = filmsRows.getString("MPA");
             Mpa mpa = new Mpa(mpaId, mpaName);
-            mpa.setId(mpaId);
             String rowOfGenres = filmsRows.getString("GENRES_FOR_PARSING");
             assert rowOfGenres != null;
             List<Genre> genres = genresParsing(rowOfGenres);
