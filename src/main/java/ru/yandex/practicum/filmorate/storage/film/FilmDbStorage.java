@@ -45,7 +45,7 @@ public class FilmDbStorage implements FilmStorage {
     */
     private String commonPartOfQuery() {
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
-                "GENRES_FOR_PARSING FROM FILMS f JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
+                "GENRES_FOR_PARSING FROM FILMS f LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
                 "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
                 "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
                 "g.GENRE_ID)) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
@@ -68,8 +68,8 @@ public class FilmDbStorage implements FilmStorage {
             String mpaName = filmsRows.getString("MPA");
             Mpa mpa = new Mpa(mpaId, mpaName);
             String rowOfGenres = filmsRows.getString("GENRES_FOR_PARSING");
-            assert rowOfGenres != null;
-            List<Genre> genres = genresParsing(rowOfGenres);
+            List<Genre> genres = new ArrayList<>();
+            if (rowOfGenres != null) genres = genresParsing(rowOfGenres);
             Film film = new Film(
                     Integer.parseInt(Objects.requireNonNull(filmsRows.getString("FILM_ID"))),
                     filmsRows.getString("NAME"),

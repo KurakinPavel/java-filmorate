@@ -113,6 +113,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Map<String, String> removeFromFriends(int id, int friendId) {
+        friendsVerification(id, friendId);
         String sqlQuery = "DELETE FROM FRIENDS WHERE USER_ID = ? AND FRIEND_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, friendId);
         if (linesDelete > 0) {
@@ -120,8 +121,29 @@ public class UserDbStorage implements UserStorage {
             return Map.of("result", "Пользователь с id " + id + " удалился из друзей у пользователя с id "
                     + friendId);
         } else {
-            throw new NoSuchElementException("Данные о дружбе между пользователем с id " + id + " и пользователем "
-                    + "с id " + friendId + " не найдены. Удаление из друзей отклонено.");
+            log.info("Сведения о дружбе между пользователями с id {} и id {} отсутствуют. Удалять нечего.",
+                    id, friendId);
+            return Map.of("result", "Пользователь с id " + id + " не был в друзьях у пользователя с id "
+                    + friendId + ". Удалять нечего.");
+        }
+    }
+
+    private void friendsVerification(int id, int friendId) {
+        List<Integer> usersIdForVerification = new ArrayList<>();
+        usersIdForVerification.add(id);
+        usersIdForVerification.add(friendId);
+        List<User> usersForVerification = someUsers(usersIdForVerification);
+        Set<Integer> pairForVerification = new HashSet<>();
+        for (User user : usersForVerification) {
+            pairForVerification.add(user.getId());
+        }
+        if (pairForVerification.isEmpty()) {
+            throw new NoSuchElementException("Переданы некорректные идентификаторы пользователей: " +
+                    id + " и " + friendId);
+        } else if (!pairForVerification.contains(id)) {
+            throw new NoSuchElementException("Передан некорректный id пользователя: " + id);
+        } else if (!pairForVerification.contains(friendId)) {
+            throw new NoSuchElementException("Передан некорректный friendId пользователя: " + friendId);
         }
     }
 
@@ -156,13 +178,27 @@ public class UserDbStorage implements UserStorage {
     }
 
     private Set<Integer> getFriendsId(int id) {
-        SqlRowSet friendsIdRows = jdbcTemplate.queryForRowSet("SELECT FRIEND_ID FROM FRIENDS WHERE " +
-                "USER_ID = ?", id);
+        SqlRowSet friendsIdRows = jdbcTemplate.queryForRowSet("SELECT u.USER_ID, f.FRIEND_ID FROM USERS u " +
+                "LEFT JOIN FRIENDS f ON u.USER_ID = f.USER_ID WHERE u.USER_ID = ?", id);
         Set<Integer> friendsId = new HashSet<>();
+        int lineCounter = 0;
         while (friendsIdRows.next()) {
-            int friendId = Integer.parseInt(Objects.requireNonNull(friendsIdRows.getString("FRIEND_ID")));
-            friendsId.add(friendId);
+            String userId = friendsIdRows.getString("USER_ID");
+            if (userId != null) {
+                lineCounter++;
+                String friendIdValue = friendsIdRows.getString("FRIEND_ID");
+                if (friendIdValue != null) {
+                    int friendId = Integer.parseInt(friendIdValue);
+                    friendsId.add(friendId);
+                }
+            }
         }
-        return friendsId;
+        if (lineCounter == 0) {
+            log.info("Пользователь с идентификатором {} не найден. Получить список его друзей не удалось.", id);
+            throw new NoSuchElementException("Пользователь с id " + id + " в базе отсутствует. " +
+                    "Получить список его друзей не удалось.");
+        } else  {
+            return friendsId;
+        }
     }
 }

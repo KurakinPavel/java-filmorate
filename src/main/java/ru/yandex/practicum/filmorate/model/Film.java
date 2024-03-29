@@ -38,11 +38,11 @@ public class Film {
     }
 
     public List<Integer> genresToInt() {
-        List<Integer> genresInInt = new ArrayList<>();
+        Set<Integer> genresWithoutDuplicates = new HashSet<>();
         for (Genre genre : genres) {
-            genresInInt.add(genre.getId());
+            genresWithoutDuplicates.add(genre.getId());
         }
-        return genresInInt;
+        return new ArrayList<>(genresWithoutDuplicates);
     }
 
     public Map<String, Object> filmToMap() {
