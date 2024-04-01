@@ -178,26 +178,25 @@ public class UserDbStorage implements UserStorage {
     }
 
     private Set<Integer> getFriendsId(int id) {
-        SqlRowSet friendsIdRows = jdbcTemplate.queryForRowSet("SELECT u.USER_ID, f.FRIEND_ID FROM USERS u " +
-                "LEFT JOIN FRIENDS f ON u.USER_ID = f.USER_ID WHERE u.USER_ID = ?", id);
         Set<Integer> friendsId = new HashSet<>();
         int lineCounter = 0;
+
+        SqlRowSet friendsIdRows = jdbcTemplate.queryForRowSet("SELECT u.USER_ID, f.FRIEND_ID FROM USERS u " +
+                "LEFT JOIN FRIENDS f ON u.USER_ID = f.USER_ID WHERE u.USER_ID = ?", id);
         while (friendsIdRows.next()) {
-            String userId = friendsIdRows.getString("USER_ID");
-            if (userId != null) {
-                lineCounter++;
-                String friendIdValue = friendsIdRows.getString("FRIEND_ID");
-                if (friendIdValue != null) {
-                    int friendId = Integer.parseInt(friendIdValue);
-                    friendsId.add(friendId);
-                }
+            lineCounter++;
+            String friendIdValue = friendsIdRows.getString("FRIEND_ID");
+            if (friendIdValue != null) {
+                int friendId = Integer.parseInt(friendIdValue);
+                friendsId.add(friendId);
             }
         }
+
         if (lineCounter == 0) {
             log.info("Пользователь с идентификатором {} не найден. Получить список его друзей не удалось.", id);
             throw new NoSuchElementException("Пользователь с id " + id + " в базе отсутствует. " +
                     "Получить список его друзей не удалось.");
-        } else  {
+        } else {
             return friendsId;
         }
     }
