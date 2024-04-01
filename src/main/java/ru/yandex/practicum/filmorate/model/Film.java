@@ -17,7 +17,8 @@ public class Film {
     protected int id;
     @NotBlank
     protected String name;
-    @NotBlank @Size(min = 1, max = 200)
+    @NotBlank
+    @Size(min = 1, max = 200)
     protected String description;
     @IsAfterDate(current = "1895-12-27")
     protected LocalDate releaseDate;
@@ -25,6 +26,7 @@ public class Film {
     protected int duration;
     protected Mpa mpa;
     protected List<Genre> genres;
+    protected List<Director> directors;
 
     public Film(int id, String name, String description,
                 LocalDate releaseDate, int duration, Mpa mpa, List<Genre> genres) {
@@ -35,6 +37,18 @@ public class Film {
         this.duration = duration;
         this.mpa = mpa;
         this.genres = genres;
+    }
+
+    public Film(int id, String name, String description,
+                LocalDate releaseDate, int duration, Mpa mpa, List<Genre> genres, List<Director> directors) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+        this.genres = genres;
+        this.directors = directors;
     }
 
     public List<Integer> genresToInt() {
