@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " ORDER BY FILM_ID");
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
         return filmsParsing(allFilmsRows);
     }
 
@@ -60,11 +60,31 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilms(int count) {
-        SqlRowSet popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
-                " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+    public List<Film> getPopularFilms(int count, int genre, int year) {
+        SqlRowSet popularFilmsRows = null;
+        String commonPartOfQueryWithGenres = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
+                "GENRES_FOR_PARSING FROM FILMS f RIGHT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
+                "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
+                "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
+                "g.GENRE_ID WHERE g.GENRE_ID = ? )) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
+                "ON m.MPA_ID = f.MPA_ID";
+        String tail = " INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
-                "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?", count);
+                "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?";
+        String tailWithYear = " INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+                "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
+                "WHERE EXTRACT (YEAR FROM f.RELEASE_DATE) = ? " +
+                "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?";
+        if (genre == 0 && year == 0) {
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + tail, count);
+        } else if (genre == 0) {
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + tailWithYear, year, count);
+        } else if (year == 0) {
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQueryWithGenres + tail, genre, count);
+        } else {
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQueryWithGenres + tailWithYear,
+                    genre, year, count);
+        }
         return filmsParsing(popularFilmsRows);
     }
 
