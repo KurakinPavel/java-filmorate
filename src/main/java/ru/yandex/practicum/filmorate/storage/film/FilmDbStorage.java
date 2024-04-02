@@ -23,7 +23,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " WHERE f.FILM_ID = ?", id);
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) + " WHERE f.FILM_ID = ?", id);
         List<Film> oneFilm = filmsParsing(filmRows);
         if (oneFilm.size() == 1) {
             return oneFilm.get(0);
@@ -35,7 +35,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false));
         return filmsParsing(allFilmsRows);
     }
 
@@ -43,24 +43,20 @@ public class FilmDbStorage implements FilmStorage {
      * Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
      * Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
      */
-    private String commonPartOfQuery() {
+    private String commonPartOfQuery(boolean withGenre) {
+        String genreString = withGenre ? " JOIN FILM_GENRES fg1 WHERE fg1.GENRE_ID = ? " : "";
+        String joinString = withGenre ? "RIGHT" : "LEFT";
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
-                "GENRES_FOR_PARSING FROM FILMS f LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
+                "GENRES_FOR_PARSING FROM FILMS f " + joinString + " JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
                 "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
                 "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
-                "g.GENRE_ID)) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
+                "g.GENRE_ID" + genreString + ")) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
                 "ON m.MPA_ID = f.MPA_ID";
     }
 
     @Override
     public List<Film> getPopularFilms(int count, int genre, int year) {
         SqlRowSet popularFilmsRows = null;
-        String commonPartOfQueryWithGenres = "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
-                "GENRES_FOR_PARSING FROM FILMS f RIGHT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
-                "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
-                "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
-                "g.GENRE_ID WHERE g.GENRE_ID = ? )) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
-                "ON m.MPA_ID = f.MPA_ID";
         String tail = " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?";
@@ -69,13 +65,13 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE EXTRACT (YEAR FROM f.RELEASE_DATE) = ? " +
                 "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?";
         if (genre == 0 && year == 0) {
-            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + tail, count);
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) + tail, count);
         } else if (genre == 0) {
-            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + tailWithYear, year, count);
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) + tailWithYear, year, count);
         } else if (year == 0) {
-            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQueryWithGenres + tail, genre, count);
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(true) + tail, genre, count);
         } else {
-            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQueryWithGenres + tailWithYear,
+            popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(true) + tailWithYear,
                     genre, year, count);
         }
         return filmsParsing(popularFilmsRows);
