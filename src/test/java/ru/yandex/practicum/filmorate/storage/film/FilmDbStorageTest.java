@@ -68,11 +68,11 @@ class FilmDbStorageTest {
     void addAndRemoveLikeAndGetPopularFilmsTest() {
         FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User newUser1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User newUser1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User newUser2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User newUser2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
-        User newUser3 = new User(0,"user3@email.ru", "vanya1323", "IIIIvan Petrov",
+        User newUser3 = new User(0, "user3@email.ru", "vanya1323", "IIIIvan Petrov",
                 LocalDate.of(1990, 3, 1));
         userStorage.create(newUser1);
         int userId1 = newUser1.getId();
@@ -115,7 +115,7 @@ class FilmDbStorageTest {
         filmStorage.addLike(filmId3, userId3);
         filmStorage.addLike(filmId1, userId1);
 
-        List<Film> popularFilms1 = filmStorage.getPopularFilms(2);
+        List<Film> popularFilms1 = filmStorage.getPopularFilms(2, 0, 0);
         Assertions.assertEquals(2, popularFilms1.size(), "Количество полученных фильмов "
                 + "отличается от ожидаемого");
         Assertions.assertEquals(2, popularFilms1.get(0).getId(), "Ожидался другой наиболее "
@@ -123,13 +123,27 @@ class FilmDbStorageTest {
         Assertions.assertEquals(3, popularFilms1.get(1).getId(), "Ожидался другой второй по "
                 + "популярности фильм");
 
+        List<Film> popularFilms3 = filmStorage.getPopularFilms(10, 3, 0);
+        Assertions.assertEquals(2, popularFilms3.size(), "Количество полученных фильмов "
+                + "отличается от ожидаемого");
+        Assertions.assertEquals(2, popularFilms3.get(0).getId(), "Ожидался другой наиболее "
+                + "популярный фильм");
+        Assertions.assertEquals(3, popularFilms3.get(1).getId(), "Ожидался другой второй по "
+                + "популярности фильм");
+
+        List<Film> popularFilms4 = filmStorage.getPopularFilms(10, 4, 1999);
+        Assertions.assertEquals(1, popularFilms4.size(), "Количество полученных фильмов "
+                + "отличается от ожидаемого");
+        Assertions.assertEquals(3, popularFilms4.get(0).getId(), "Ожидался другой наиболее "
+                + "популярный фильм");
+
         filmStorage.removeLike(filmId2, userId1);
         filmStorage.removeLike(filmId2, userId2);
         filmStorage.removeLike(filmId3, userId2);
         filmStorage.removeLike(filmId3, userId3);
         filmStorage.addLike(filmId1, userId2);
 
-        List<Film> popularFilms2 = filmStorage.getPopularFilms(2);
+        List<Film> popularFilms2 = filmStorage.getPopularFilms(2, 0, 0);
         Assertions.assertEquals(1, popularFilms2.get(0).getId(), "Ожидался другой наиболее "
                 + "популярный фильм");
         Assertions.assertEquals(2, popularFilms2.get(1).getId(), "Ожидался другой второй по "
