@@ -120,10 +120,11 @@ class UserDbStorageTest {
         userStorage.create(user1);
         userStorage.create(user2);
         int userId = user1.getId();
-        userStorage.addInFriends(userId, user2.getId());
+        int userId2 = user2.getId();
+        userStorage.addInFriends(userId, userId2);
         Assertions.assertEquals(2, userStorage.findAll().size());
         Assertions.assertEquals(1, userStorage.getFriendsOfUser(userId).size());
-        userStorage.delete(userId);
+        userStorage.delete(userId2);
         Assertions.assertEquals(1, userStorage.findAll().size());
         Assertions.assertEquals(0, userStorage.getFriendsOfUser(userId).size());
 
