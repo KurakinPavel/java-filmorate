@@ -19,10 +19,10 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final MpaStorage mpaStorage;
     private final GenreStorage genreStorage;
-    private final DirectorStorage directorStorage; //Shtefan добавление нового сторейджа режиссёров
+    private final DirectorStorage directorStorage;//Shtefan добавление нового сторейджа режиссёров
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, MpaStorage mpaStorage, //Shtefan добавление нового сторейджа режиссёров
+    public FilmService(FilmStorage filmStorage, MpaStorage mpaStorage,//Shtefan добавление нового сторейджа режиссёров
                        GenreStorage genreStorage, DirectorStorage directorStorage) {
         this.filmStorage = filmStorage;
         this.mpaStorage = mpaStorage;
@@ -37,7 +37,7 @@ public class FilmService {
 
     public Film create(Film film) {
         setMpaAndGenres(film);
-        setDirectors(film); //SHTEFAN добавление режиссёров
+        setDirectors(film);//SHTEFAN добавление режиссёров
         return filmStorage.create(film);
     }
 
@@ -57,7 +57,7 @@ public class FilmService {
         }
     }
 
-    private void setDirectors(Film film) { //SHTEFAN добавление режиссёров
+    private void setDirectors(Film film) {//SHTEFAN добавление режиссёров
         try {
             if (film.getDirectors() != null) {
                 List<Integer> directorsInInt = film.directorsToInt();
@@ -95,7 +95,7 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    public List<Film> getByDirector(Integer id, String sortBy) { //SHTEFAN поиск по режиссёру
+    public List<Film> getByDirector(Integer id, String sortBy) {//SHTEFAN поиск по режиссёру
         directorStorage.getDirector(id);
         if (sortBy.equals("year"))
             return filmStorage.getByDirector(id, " f.RELEASE_DATE ASC");

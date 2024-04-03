@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Data
 @AllArgsConstructor
-public class Director { //SHTEFAN добавление режиссёров
+public class Director {//SHTEFAN добавление режиссёров
     protected int id;
     @NotBlank
     protected String name;

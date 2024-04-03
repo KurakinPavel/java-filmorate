@@ -44,7 +44,7 @@ public class FilmDbStorage implements FilmStorage {
      * Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
      * Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
      */
-    private String commonPartOfQuery() { //SHTEFAN добавление режиссёров
+    private String commonPartOfQuery() {//SHTEFAN добавление режиссёров
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
                 "GENRES_FOR_PARSING, DIRECTORS_FOR_PARSING FROM FILMS f LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
                 "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
@@ -85,7 +85,7 @@ public class FilmDbStorage implements FilmStorage {
                     filmsRows.getString("DESCRIPTION"),
                     LocalDate.parse(Objects.requireNonNull(filmsRows.getString("RELEASE_DATE"))),
                     Integer.parseInt(Objects.requireNonNull(filmsRows.getString("DURATION"))),
-                    mpa, genres, directors); //SHTEFAN добавление режиссёров
+                    mpa, genres, directors);//SHTEFAN добавление режиссёров
             films.add(film);
         }
         return films;
@@ -104,7 +104,7 @@ public class FilmDbStorage implements FilmStorage {
         return genres;
     }
 
-    private List<Director> directorsParsing(String rowOfDirectors) { //SHTEFAN добавление режиссёров
+    private List<Director> directorsParsing(String rowOfDirectors) {//SHTEFAN добавление режиссёров
         List<Director> directors = new ArrayList<>();
         String delimiter = ";";
         String[] content = rowOfDirectors.split(delimiter);
@@ -128,7 +128,7 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             film.setGenres(new ArrayList<>());
         }
-        if (film.getDirectors() != null) { //SHTEFAN добавление режиссёров
+        if (film.getDirectors() != null) {//SHTEFAN добавление режиссёров
             addDirectors(film);
         } else {
             film.setDirectors(new ArrayList<>());
@@ -148,7 +148,7 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-    private void addDirectors(Film film) { //SHTEFAN добавление режиссёров
+    private void addDirectors(Film film) {//SHTEFAN добавление режиссёров
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("FILM_DIRECTOR")
                 .usingGeneratedKeyColumns("PAIR_ID");
@@ -166,7 +166,7 @@ public class FilmDbStorage implements FilmStorage {
         return values;
     }
 
-    private Map<String, Integer> directorToMap(int filmId, int directorId) { //SHTEFAN добавление режиссёров
+    private Map<String, Integer> directorToMap(int filmId, int directorId) {//SHTEFAN добавление режиссёров
         Map<String, Integer> values = new HashMap<>();
         values.put("FILM_ID", filmId);
         values.put("DIRECTOR_ID", directorId);
@@ -189,7 +189,7 @@ public class FilmDbStorage implements FilmStorage {
                     film.getMpa().getId(),
                     film.getId());
 
-            String deleteGenresQuery = "DELETE FROM FILM_GENRES WHERE FILM_ID = ?"; ///SHTEFAN BEGIN добавление режиссёров
+            String deleteGenresQuery = "DELETE FROM FILM_GENRES WHERE FILM_ID = ?";///SHTEFAN BEGIN добавление режиссёров
             jdbcTemplate.update(deleteGenresQuery, film.getId());
             if (film.getGenres() != null) {
                 addGenres(film);
@@ -202,7 +202,7 @@ public class FilmDbStorage implements FilmStorage {
                 addDirectors(film);
             } else {
                 film.setDirectors(new ArrayList<>());
-            } //SHTEFAN END добавление режиссёров
+            }//SHTEFAN END добавление режиссёров
             if (linesChanged > 0) {
                 log.info("Обновлены данные фильма с id {}", film.getId());
             } else {
@@ -248,7 +248,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getByDirector(int id, String sortBy) { //SHTEFAN Поиск по режиссёру
+    public List<Film> getByDirector(int id, String sortBy) {//SHTEFAN Поиск по режиссёру
         SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
                 " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
