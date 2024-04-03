@@ -49,7 +49,8 @@ public class Film {
         return new ArrayList<>(genresWithoutDuplicates);
     }
 
-    public List<Integer> directorsToInt() {//Shtefan новое поле "Режиссёры"
+    public List<Integer> directorsToInt() {
+        //Shtefan новое поле "Режиссёры"
         Set<Integer> directorsWithoutDuplicates = new HashSet<>();
         for (Director director : directors) {
             directorsWithoutDuplicates.add(director.getId());
