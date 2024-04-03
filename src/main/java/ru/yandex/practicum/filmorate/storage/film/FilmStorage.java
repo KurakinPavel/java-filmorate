@@ -23,4 +23,5 @@ public interface FilmStorage {
 
     Map<String, String> removeLike(int id, int userId);
 
+    List<Film> getCommonFilms(int userId, int friendId);
 }
