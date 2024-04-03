@@ -9,7 +9,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/directors")
-public class DirectorController {//SHTEFAN добавление режиссёров
+public class DirectorController {
+    //SHTEFAN добавление режиссёров
     private final DirectorService directorService;
 
     public DirectorController(DirectorService directorService) {
