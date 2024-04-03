@@ -9,12 +9,13 @@ import java.util.Map;
 
 @Data
 @AllArgsConstructor
-public class Director {//SHTEFAN добавление режиссёров
+public class Director {
+    //SHTEFAN добавление режиссёров
     protected int id;
     @NotBlank
     protected String name;
 
-    public Map<String, Object> DirectorToMap() {
+    public Map<String, Object> directorToMap() {
         Map<String, Object> values = new HashMap<>();
         values.put("NAME", name);
         return values;

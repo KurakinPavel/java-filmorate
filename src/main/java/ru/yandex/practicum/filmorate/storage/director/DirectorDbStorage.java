@@ -46,7 +46,7 @@ public class DirectorDbStorage implements DirectorStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("DIRECTOR")
                 .usingGeneratedKeyColumns("DIRECTOR_ID");
-        director.setId(simpleJdbcInsert.executeAndReturnKey(director.DirectorToMap()).intValue());
+        director.setId(simpleJdbcInsert.executeAndReturnKey(director.directorToMap()).intValue());
         log.info("Добавлен новый режиссёр с айди {}", director.getId());
         return director;
     }

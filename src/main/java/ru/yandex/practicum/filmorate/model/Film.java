@@ -30,7 +30,7 @@ public class Film {
 
     public Film(int id, String name, String description,
                 LocalDate releaseDate, int duration, Mpa mpa,
-                List<Genre> genres, List<Director> directors) {//Shtefan новое поле "Режиссёры"
+                List<Genre> genres, List<Director> directors) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -38,7 +38,7 @@ public class Film {
         this.duration = duration;
         this.mpa = mpa;
         this.genres = genres;
-        this.directors = directors;
+        this.directors = directors;//SHTEFAN добавление режиссёров
     }
 
     public List<Integer> genresToInt() {

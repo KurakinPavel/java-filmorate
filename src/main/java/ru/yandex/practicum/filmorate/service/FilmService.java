@@ -57,7 +57,8 @@ public class FilmService {
         }
     }
 
-    private void setDirectors(Film film) {//SHTEFAN добавление режиссёров
+    private void setDirectors(Film film) {
+        //SHTEFAN добавление режиссёров
         try {
             if (film.getDirectors() != null) {
                 List<Integer> directorsInInt = film.directorsToInt();
@@ -95,7 +96,8 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    public List<Film> getByDirector(Integer id, String sortBy) {//SHTEFAN поиск по режиссёру
+    public List<Film> getByDirector(Integer id, String sortBy) {
+        //SHTEFAN поиск по режиссёру
         directorStorage.getDirector(id);
         if (sortBy.equals("year"))
             return filmStorage.getByDirector(id, " f.RELEASE_DATE ASC");
