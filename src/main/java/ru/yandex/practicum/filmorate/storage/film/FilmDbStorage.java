@@ -40,9 +40,9 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     /**
-     Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
-     Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
-    */
+     * Скриншот форматированного (для лучшей читаемости) запроса приведён в файле FILMS_WITH_GENRES в папке resources.
+     * Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
+     */
     private String commonPartOfQuery() {
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
                 "GENRES_FOR_PARSING FROM FILMS f LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
@@ -55,7 +55,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         SqlRowSet popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
-                " INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+                " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?", count);
         return filmsParsing(popularFilmsRows);
@@ -187,6 +187,22 @@ public class FilmDbStorage implements FilmStorage {
         } else {
             throw new NoSuchElementException("Сведения о лайке от пользователя с id " + userId + " фильму с id " + id
                     + " не найдены. Удаление лайка отклонено.");
+        }
+    }
+
+    @Override
+    public void delete(int filmId) {
+        String sqlLikes = "DELETE FROM LIKES WHERE FILM_ID = ? ;";
+        String sqlGenres = "DELETE FROM FILM_GENRES WHERE FILM_ID = ? ;";
+        jdbcTemplate.update(sqlLikes, filmId);
+        jdbcTemplate.update(sqlGenres, filmId);
+        //добавить удаление отзывов на фильм
+        String sqlFilms = "DELETE FROM FILMS WHERE FILM_ID = ? ;";
+        int linesDelete = jdbcTemplate.update(sqlFilms, filmId);
+        if (linesDelete > 0) {
+            log.info("Фильм с id {} удален", filmId);
+        } else {
+            throw new NoSuchElementException("Ошибка при удалении. Фильм с id " + filmId + " не найден.");
         }
     }
 }

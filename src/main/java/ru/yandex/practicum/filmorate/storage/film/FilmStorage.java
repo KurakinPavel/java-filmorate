@@ -23,4 +23,6 @@ public interface FilmStorage {
 
     Map<String, String> removeLike(int id, int userId);
 
+    void delete(int filmId);
+
 }

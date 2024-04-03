@@ -21,9 +21,9 @@ class UserDbStorageTest {
     @Test
     void findAllTest() {
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User newUser1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User newUser1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User newUser2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User newUser2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
         userStorage.create(newUser1);
         userStorage.create(newUser2);
@@ -34,7 +34,7 @@ class UserDbStorageTest {
 
     @Test
     void getUserTest() {
-        User newUser = new User(0,"user@email.ru", "vanya123", "Ivan Petrov",
+        User newUser = new User(0, "user@email.ru", "vanya123", "Ivan Petrov",
                 LocalDate.of(1990, 1, 1));
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
         userStorage.create(newUser);
@@ -44,12 +44,12 @@ class UserDbStorageTest {
 
     @Test
     void updateTest() {
-        User newUser = new User(0,"user@email.ru", "vanya123", "Ivan Petrov",
+        User newUser = new User(0, "user@email.ru", "vanya123", "Ivan Petrov",
                 LocalDate.of(1990, 1, 1));
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
         userStorage.create(newUser);
         int id = newUser.getId();
-        User userForUpdate = new User(id,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User userForUpdate = new User(id, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 2, 1));
         userStorage.update(userForUpdate);
         User updatedUser = userStorage.getUser(id);
@@ -59,9 +59,9 @@ class UserDbStorageTest {
     @Test
     void addInFriendsAndGetFriendsOfUserTest() {
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User user1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User user1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User user2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User user2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
         userStorage.create(user1);
         userStorage.create(user2);
@@ -75,9 +75,9 @@ class UserDbStorageTest {
     @Test
     void removeFromFriendsTest() {
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User user1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User user1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User user2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User user2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
         userStorage.create(user1);
         userStorage.create(user2);
@@ -94,11 +94,11 @@ class UserDbStorageTest {
     @Test
     void getCommonFriendsTest() {
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User user1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User user1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User user2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User user2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
-        User user3 = new User(0,"user3@email.ru", "vanya1323", "IIIIvan Petrov",
+        User user3 = new User(0, "user3@email.ru", "vanya1323", "IIIIvan Petrov",
                 LocalDate.of(1990, 3, 1));
         userStorage.create(user1);
         userStorage.create(user2);
@@ -108,5 +108,24 @@ class UserDbStorageTest {
         List<User> friendsOfUser1 = userStorage.getFriendsOfUser(user1.getId());
         List<User> friendsOfUser2 = userStorage.getFriendsOfUser(user2.getId());
         Assertions.assertEquals(friendsOfUser1.get(0), friendsOfUser2.get(0), "Друзья не совпадают");
+    }
+
+    @Test
+    void deleteUserTest() {
+        UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
+        User user1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
+                LocalDate.of(1990, 1, 1));
+        User user2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
+                LocalDate.of(1990, 2, 1));
+        userStorage.create(user1);
+        userStorage.create(user2);
+        int userId = user1.getId();
+        userStorage.addInFriends(userId, user2.getId());
+        Assertions.assertEquals(2, userStorage.findAll().size());
+        Assertions.assertEquals(1, userStorage.getFriendsOfUser(userId).size());
+        userStorage.delete(userId);
+        Assertions.assertEquals(1, userStorage.findAll().size());
+        Assertions.assertEquals(0, userStorage.getFriendsOfUser(userId).size());
+
     }
 }

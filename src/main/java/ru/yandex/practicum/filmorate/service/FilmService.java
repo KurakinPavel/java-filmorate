@@ -70,4 +70,8 @@ public class FilmService {
     public List<Film> getPopularFilms(int count) {
         return filmStorage.getPopularFilms(count);
     }
+
+    public void deleteFilm(int filmId) {
+        filmStorage.delete(filmId);
+    }
 }
