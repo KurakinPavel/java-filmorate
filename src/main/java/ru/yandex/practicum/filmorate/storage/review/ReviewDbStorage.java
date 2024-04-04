@@ -46,7 +46,7 @@ public class ReviewDbStorage implements ReviewStorage {
                         + " не найден. Обновление отклонено.");
             }
         }
-        return review;
+        return getReview(review.getReviewId());
     }
 
     @Override
@@ -79,17 +79,17 @@ public class ReviewDbStorage implements ReviewStorage {
     public List<Review> findAll(int id, int count) {
         SqlRowSet reviewRows;
         if (id == 0) {
-            reviewRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " LIMIT ?", count);
+            reviewRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " ORDER BY USEFUL DESC LIMIT ?", count);
         } else {
-            reviewRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " HAVING r.FILM_ID = ? LIMIT ?",
-                    id, count);
+            reviewRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " HAVING r.FILM_ID = ? " +
+                            "ORDER BY USEFUL DESC LIMIT ?", id, count);
         }
         return reviewsParsing(reviewRows);
     }
 
     private String commonPartOfQuery() {
-        return "SELECT r.REVIEW_ID, r.USER_ID, r.FILM_ID, r.CONTENT, d.DIRECTION, SUM(g.GRADE) AS USEFUL " +
-                "FROM REVIEWS r JOIN DIRECTIONS d ON r.DIRECTION_ID = d.DIRECTION_ID " +
+        return "SELECT r.REVIEW_ID, r.USER_ID, r.FILM_ID, r.CONTENT, d.DIRECTION, COALESCE(SUM(g.GRADE), 0) AS USEFUL "
+                + "FROM REVIEWS r LEFT JOIN DIRECTIONS d ON r.DIRECTION_ID = d.DIRECTION_ID " +
                                "LEFT JOIN OPINIONS o ON r.REVIEW_ID = o.REVIEW_ID " +
                                "LEFT JOIN GRADES g ON o.GRADE_ID = g.GRADE_ID " +
                 "GROUP BY r.REVIEW_ID";
@@ -98,23 +98,16 @@ public class ReviewDbStorage implements ReviewStorage {
     private List<Review> reviewsParsing(SqlRowSet reviewRows) {
         List<Review> reviews = new ArrayList<>();
         while (reviewRows.next()) {
-            String rowOfUseful = reviewRows.getString("USEFUL");
-            int useful = usefulCannotBeNull(rowOfUseful);
             Review review = new Review(
                     Integer.parseInt(Objects.requireNonNull(reviewRows.getString("REVIEW_ID"))),
                     reviewRows.getString("CONTENT"),
                     Boolean.parseBoolean(reviewRows.getString("DIRECTION")),
                     Integer.parseInt(Objects.requireNonNull(reviewRows.getString("USER_ID"))),
                     Integer.parseInt(Objects.requireNonNull(reviewRows.getString("FILM_ID"))),
-                    useful);
+                    Integer.parseInt(Objects.requireNonNull(reviewRows.getString("USEFUL"))));
             reviews.add(review);
         }
         return reviews;
-    }
-
-    private int usefulCannotBeNull(String rowOfUseful) {
-        if (rowOfUseful == null) return 0;
-        return Integer.parseInt(Objects.requireNonNull(rowOfUseful));
     }
 
     @Override

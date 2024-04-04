@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.service.ReviewService;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/reviews")
@@ -21,7 +22,15 @@ public class ReviewController {
 
     @PostMapping
     public Review create(@RequestBody @Valid Review review) {
+        validUserAndFilm(review);
         return reviewService.create(review);
+    }
+
+    private void validUserAndFilm(Review review) {
+        if (review.getUserId() < 0) throw new NoSuchElementException("Пользователь с id " + review.getUserId()
+                + " не существует");
+        if (review.getFilmId() < 0) throw new NoSuchElementException("Фильм с id " + review.getFilmId()
+                + " не существует");
     }
 
     @PutMapping

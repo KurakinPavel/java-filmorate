@@ -26,9 +26,19 @@ public class Review {
         this.reviewId = reviewId;
         this.content = content;
         this.isPositive = isPositive;
-        this.userId = userId;
-        this.filmId = filmId;
+        this.userId = validUserId(userId);
+        this.filmId = validFilmId(filmId);
         this.useful = useful;
+    }
+
+    private int validUserId(int userId) {
+        if (userId == 0) throw new IllegalArgumentException("Пользователь с id " + userId + " не существует");
+        return userId;
+    }
+
+    private int validFilmId(int filmId) {
+        if (filmId == 0) throw new IllegalArgumentException("Фильм с id " + filmId + " не существует");
+        return filmId;
     }
 
     public Map<String, Object> reviewToMap() {

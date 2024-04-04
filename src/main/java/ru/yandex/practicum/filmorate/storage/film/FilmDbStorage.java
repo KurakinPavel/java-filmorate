@@ -55,7 +55,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilms(int count) {
         SqlRowSet popularFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
-                " INNER JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+                " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "ORDER BY POPULAR_FILMS.POPULARITY DESC LIMIT ?", count);
         return filmsParsing(popularFilmsRows);
