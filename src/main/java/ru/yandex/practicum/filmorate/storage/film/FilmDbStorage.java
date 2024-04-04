@@ -192,10 +192,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String commonIds = "SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE l1.USER_ID = ? AND l2.USER_ID = ?";
+        String commonIds = "SELECT * FROM FILMS WHERE FILM_ID IN (SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE l1.USER_ID = ? AND l2.USER_ID = ?)";
         SqlRowSet commonFilmsRows = jdbcTemplate.queryForRowSet(
                 "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING FROM (" +
-                        commonPartOfQuery() + ") WHERE FILM_ID IN (" + commonIds + ");", userId, friendId
+                        commonPartOfQuery() + ") AS result INNER JOIN (" + commonIds + ") AS ids ON result.FILM_ID = ids.FILM_ID;", userId, friendId
         );
         return filmsParsing(commonFilmsRows);
     }
