@@ -81,7 +81,7 @@ public class FilmDbStorage implements FilmStorage {
             if (rowOfGenres != null) genres = genresParsing(rowOfGenres);
             if (rowOfDirectors != null) directors = directorsParsing(rowOfDirectors);//SHTEFAN добавление режиссёров
             Film film = new Film(
-                    Integer.parseInt(Objects.requireNonNull(filmsRows.getString("FILM_ID"))),
+                    filmsRows.getInt("FILM_ID"),
                     filmsRows.getString("NAME"),
                     filmsRows.getString("DESCRIPTION"),
                     LocalDate.parse(Objects.requireNonNull(filmsRows.getString("RELEASE_DATE"))),

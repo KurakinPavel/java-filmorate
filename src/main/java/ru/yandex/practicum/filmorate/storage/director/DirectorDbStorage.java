@@ -12,7 +12,6 @@ import ru.yandex.practicum.filmorate.model.Director;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -83,14 +82,16 @@ public class DirectorDbStorage implements DirectorStorage {
         String sqlDeletePairs = "DELETE FROM FILM_DIRECTOR WHERE DIRECTOR_ID = ?";
         jdbcTemplate.update(sqlDeletePairs, id);
         String sqlDeleteDirector = "DELETE FROM DIRECTOR WHERE DIRECTOR_ID = ?";
-        jdbcTemplate.update(sqlDeleteDirector, id);
+        int linesDeleted = jdbcTemplate.update(sqlDeleteDirector, id);
+        if (linesDeleted == 0)
+            throw new NoSuchElementException("Не найден режиссёр с айди " + id);
     }
 
     private List<Director> directorParsing(SqlRowSet dirRows) {
         List<Director> directors = new ArrayList<>();
         while (dirRows.next()) {
             Director director = new Director(
-                    Integer.parseInt(Objects.requireNonNull(dirRows.getString("DIRECTOR_ID"))),
+                    dirRows.getInt("DIRECTOR_ID"),
                     dirRows.getString("NAME"));
             directors.add(director);
         }
