@@ -55,6 +55,12 @@ public class FilmController {
         return filmService.getPopularFilms(count);
     }
 
+    @GetMapping("/common")
+    public List<Film> getCommon(@RequestParam("userId") Integer userId,
+                                @RequestParam("friendId") Integer friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
     @GetMapping("/director/{id}") //SHTEFAN добавление режиссёров
     public List<Film> getByDirector(@RequestParam(defaultValue = "year") String sortBy, @PathVariable Integer id) {
         return filmService.getByDirector(id, sortBy);

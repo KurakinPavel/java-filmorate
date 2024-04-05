@@ -253,6 +253,17 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        String commonIds = "SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE l1.USER_ID = ? AND l2.USER_ID = ?";
+        SqlRowSet commonFilmsRows = jdbcTemplate.queryForRowSet(
+                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
+                        commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + commonIds + ");", userId, friendId
+        );
+        return filmsParsing(commonFilmsRows);
+    }
+
+
+    @Override
     public List<Film> getByDirector(int id, String sortBy) {
         //SHTEFAN Поиск по режиссёру
         SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
