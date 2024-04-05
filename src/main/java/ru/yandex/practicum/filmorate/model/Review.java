@@ -9,6 +9,9 @@ import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
+import static ru.yandex.practicum.filmorate.storage.review.ReviewStorage.GRADE_ID_NEGATIVE;
+import static ru.yandex.practicum.filmorate.storage.review.ReviewStorage.GRADE_ID_POSITIVE;
+
 @Slf4j
 @Data
 public class Review {
@@ -51,7 +54,7 @@ public class Review {
     }
 
     public int setDirectionId(Boolean isPositive) {
-        if (!isPositive) return 0;
-        return 1;
+        if (!isPositive) return GRADE_ID_NEGATIVE;
+        return GRADE_ID_POSITIVE;
     }
 }

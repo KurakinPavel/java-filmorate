@@ -25,7 +25,7 @@ public class ReviewDbStorage implements ReviewStorage {
                 .usingGeneratedKeyColumns("REVIEW_ID");
         review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.reviewToMap()).intValue());
         log.info("Добавлен новый отзыв с id {}", review.getReviewId());
-        return review;
+        return getReview(review.getReviewId());
     }
 
     @Override
@@ -153,29 +153,15 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public Map<String, String> removeOpinionPositive(int reviewId, int userId) {
+    public Map<String, String> removeOpinion(int reviewId, int userId) {
         String sqlQuery = "DELETE FROM OPINIONS WHERE REVIEW_ID = ? AND USER_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, reviewId, userId);
         if (linesDelete > 0) {
-            log.info("Пользователь с id {} удалил положительную оценку отзыва с id {}", userId, reviewId);
-            return Map.of("result", "Пользователь с id " + userId + " удалил положительную оценку " +
+            log.info("Пользователь с id {} удалил оценку отзыва с id {}", userId, reviewId);
+            return Map.of("result", "Пользователь с id " + userId + " удалил оценку " +
                     "отзыва с id " + reviewId);
         } else {
-            throw new NoSuchElementException("Сведения о положительной оценке от пользователя с id " + userId +
-                    " отзыву с id " + reviewId + " не найдены. Удаление оценки отклонено.");
-        }
-    }
-
-    @Override
-    public Map<String, String> removeOpinionNegative(int reviewId, int userId) {
-        String sqlQuery = "DELETE FROM OPINIONS WHERE REVIEW_ID = ? AND USER_ID = ?";
-        int linesDelete = jdbcTemplate.update(sqlQuery, reviewId, userId);
-        if (linesDelete > 0) {
-            log.info("Пользователь с id {} удалил отрицательную оценку отзыва с id {}", userId, reviewId);
-            return Map.of("result", "Пользователь с id " + userId + " удалил отрицательную оценку " +
-                    "отзыва с id " + reviewId);
-        } else {
-            throw new NoSuchElementException("Сведения об отрицательной оценке от пользователя с id " + userId +
+            throw new NoSuchElementException("Сведения об оценке от пользователя с id " + userId +
                     " отзыву с id " + reviewId + " не найдены. Удаление оценки отклонено.");
         }
     }

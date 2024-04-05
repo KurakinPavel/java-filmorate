@@ -24,8 +24,6 @@ public interface ReviewStorage {
 
     Map<String, String> addOpinionNegative(int reviewId, int userId);
 
-    Map<String, String> removeOpinionPositive(int reviewId, int userId);
-
-    Map<String, String> removeOpinionNegative(int reviewId, int userId);
+    Map<String, String> removeOpinion(int reviewId, int userId);
 
 }

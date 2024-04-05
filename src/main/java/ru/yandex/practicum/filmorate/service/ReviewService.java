@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
@@ -20,7 +21,15 @@ public class ReviewService {
     }
 
     public Review create(Review review) {
+        validUserAndFilm(review);
         return reviewStorage.create(review);
+    }
+
+    private void validUserAndFilm(Review review) {
+        if (review.getUserId() < 0) throw new NoSuchElementException("Пользователь с id " + review.getUserId()
+                + " не существует");
+        if (review.getFilmId() < 0) throw new NoSuchElementException("Фильм с id " + review.getFilmId()
+                + " не существует");
     }
 
     public Review update(Review review) {
@@ -47,11 +56,7 @@ public class ReviewService {
         return reviewStorage.addOpinionNegative(reviewId, userId);
     }
 
-    public Map<String, String> removeOpinionPositive(int reviewId, int userId) {
-        return reviewStorage.removeOpinionPositive(reviewId, userId);
-    }
-
-    public Map<String, String> removeOpinionNegative(int reviewId, int userId) {
-        return reviewStorage.removeOpinionNegative(reviewId, userId);
+    public Map<String, String> removeOpinion(int reviewId, int userId) {
+        return reviewStorage.removeOpinion(reviewId, userId);
     }
 }
