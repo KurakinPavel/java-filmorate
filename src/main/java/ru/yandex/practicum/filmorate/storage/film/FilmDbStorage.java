@@ -48,13 +48,10 @@ public class FilmDbStorage implements FilmStorage {
         String genreString = withGenre ? " JOIN FILM_GENRES fg1 WHERE fg1.GENRE_ID = ? " : "";
         String joinString = withGenre ? "RIGHT" : "LEFT";
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
-                "GENRES_FOR_PARSING FROM FILMS f " + joinString + " JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
-                "GENRES_FOR_PARSING, DIRECTORS_FOR_PARSING FROM FILMS f LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
+                "GENRES_FOR_PARSING, DIRECTORS_FOR_PARSING FROM FILMS f " + joinString + " JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
                 "GENRES_FOR_PARSING, FILM_ID FROM (SELECT CONCAT_WS(',',GENRE_ID,GENRE) AS ID_AND_GENRE, FILM_ID " +
                 "FROM (SELECT fg.FILM_ID, fg.GENRE_ID, g.GENRE FROM GENRES g JOIN FILM_GENRES fg ON fg.GENRE_ID = " +
-                "g.GENRE_ID" + genreString + ")) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID JOIN MPA m " +
-                "ON m.MPA_ID = f.MPA_ID";
-                "g.GENRE_ID)) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID " +
+                "g.GENRE_ID" + genreString + ")) GROUP BY FILM_ID) GENRES_IN_GROUP ON f.FILM_ID = GENRES_IN_GROUP.FILM_ID " +
                 "LEFT JOIN (SELECT GROUP_CONCAT(ID_AND_DIRECTOR SEPARATOR ';') AS DIRECTORS_FOR_PARSING, " +
                 "FILM_ID FROM (SELECT CONCAT_WS(',', DIRECTOR_ID, NAME) AS ID_AND_DIRECTOR, " +
                 "FILM_ID FROM (SELECT fd.FILM_ID, fd.DIRECTOR_ID, d.NAME FROM DIRECTOR d JOIN FILM_DIRECTOR fd " +
@@ -273,7 +270,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getByDirector(int id, String sortBy) {
         //SHTEFAN Поиск по режиссёру
-        SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
+        SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) +
                 " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "where f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE fd2.DIRECTOR_ID = ?) " +
