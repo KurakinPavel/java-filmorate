@@ -30,7 +30,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm);
         Film savedFilm = filmStorage.getFilm(newFilm.getId());
         Assertions.assertEquals(savedFilm, newFilm, "Созданный и извлечённый объекты не совпадают");
@@ -46,7 +46,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
 
         Mpa mpa2 = new Mpa(2, "PG");
@@ -56,7 +56,7 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm2);
 
         List<Film> films = filmStorage.findAll();
@@ -68,11 +68,11 @@ class FilmDbStorageTest {
     void addAndRemoveLikeAndGetPopularFilmsTest() {
         FilmDbStorage filmStorage = new FilmDbStorage(jdbcTemplate);
         UserDbStorage userStorage = new UserDbStorage(jdbcTemplate);
-        User newUser1 = new User(0,"user1@email.ru", "vanya1123", "IIvan Petrov",
+        User newUser1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
-        User newUser2 = new User(0,"user2@email.ru", "vanya1223", "IIIvan Petrov",
+        User newUser2 = new User(0, "user2@email.ru", "vanya1223", "IIIvan Petrov",
                 LocalDate.of(1990, 2, 1));
-        User newUser3 = new User(0,"user3@email.ru", "vanya1323", "IIIIvan Petrov",
+        User newUser3 = new User(0, "user3@email.ru", "vanya1323", "IIIIvan Petrov",
                 LocalDate.of(1990, 3, 1));
         userStorage.create(newUser1);
         int userId1 = newUser1.getId();
@@ -88,7 +88,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
         int filmId1 = newFilm1.getId();
 
@@ -99,12 +99,12 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm2);
         int filmId2 = newFilm2.getId();
 
         Film newFilm3 = new Film(0, "Film3", "film 3 is 3 film of 3 film great 3 film 3",
-                LocalDate.of(1999, 3, 5), 100, mpa2, genres2);
+                LocalDate.of(1999, 3, 5), 100, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm3);
         int filmId3 = newFilm3.getId();
 
@@ -147,7 +147,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
         int id = newFilm1.getId();
 
@@ -158,7 +158,7 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(id, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
 
         filmStorage.update(newFilm2);
         Film updatedFilm = filmStorage.getFilm(id);
