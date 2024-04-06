@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " ORDER BY FILM_ID");
         return filmsParsing(allFilmsRows);
     }
 
