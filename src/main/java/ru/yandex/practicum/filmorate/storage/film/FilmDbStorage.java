@@ -262,6 +262,16 @@ public class FilmDbStorage implements FilmStorage {
         return filmsParsing(commonFilmsRows);
     }
 
+    @Override
+    public List<Film> getRecommendedFilms(Integer id) {
+        String rowSortFilms = "SELECT FILM_ID FROM LIKES WHERE FILM_ID NOT IN (SELECT FILM_ID FROM LIKES WHERE USER_ID = ?) GROUP BY FILM_ID ORDER BY COUNT(FILM_ID) DESC";
+        SqlRowSet recommendedFilmsRows = jdbcTemplate.queryForRowSet(
+                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
+                        commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + rowSortFilms + ");", id
+        );
+        return filmsParsing(recommendedFilmsRows);
+    }
+
 
     @Override
     public List<Film> getByDirector(int id, String sortBy) {
