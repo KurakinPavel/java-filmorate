@@ -24,7 +24,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) + " WHERE f.FILM_ID = ?", id);
+        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() + " WHERE f.FILM_ID = ?", id);
         List<Film> oneFilm = filmsParsing(filmRows);
         if (oneFilm.size() == 1) {
             return oneFilm.get(0);
@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false));
+        SqlRowSet allFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery());
         return filmsParsing(allFilmsRows);
     }
 
@@ -58,6 +58,10 @@ public class FilmDbStorage implements FilmStorage {
                 " ON fd.DIRECTOR_ID = d.DIRECTOR_ID))" +
                 "GROUP BY FILM_ID) DIRECTORS_IN_GROUP ON f.FILM_ID  = DIRECTORS_IN_GROUP.FILM_ID " +
                 "JOIN MPA m ON m.MPA_ID = f.MPA_ID ";
+    }
+
+    private String commonPartOfQuery() {
+        return commonPartOfQuery(false);
     }
 
     @Override
@@ -281,7 +285,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getByDirector(int id, String sortBy) {
         //SHTEFAN Поиск по режиссёру
-        SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery(false) +
+        SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
                 " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
                 "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
                 "where f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE fd2.DIRECTOR_ID = ?) " +
