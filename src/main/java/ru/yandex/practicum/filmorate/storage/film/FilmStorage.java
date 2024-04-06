@@ -17,7 +17,7 @@ public interface FilmStorage {
 
     Film update(Film film);
 
-    List<Film> getPopularFilms(int count);
+    List<Film> getPopularFilms(int count, int genre, int year);
 
     List<Film> getByDirector(int id, String sortBy);//SHTEFAN получение списка фильмов по режиссёру
 
