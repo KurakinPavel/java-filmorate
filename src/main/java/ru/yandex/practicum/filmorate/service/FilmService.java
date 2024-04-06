@@ -96,6 +96,10 @@ public class FilmService {
         return filmStorage.getPopularFilms(count, genre, year);
     }
 
+    public List<Film> getCommonFilms(int userId, int friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
     public List<Film> getByDirector(Integer id, String sortBy) {
         //SHTEFAN поиск по режиссёру
         directorStorage.getDirector(id);
