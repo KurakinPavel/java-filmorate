@@ -190,7 +190,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, null);
         filmStorage.create(newFilm1);
 
         Mpa mpa2 = new Mpa(2, "PG");
@@ -200,7 +200,7 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, null);
         filmStorage.create(newFilm2);
         User newUser1 = new User(0, "user1@email.ru", "vanya1123", "IIvan Petrov",
                 LocalDate.of(1990, 1, 1));
@@ -215,11 +215,11 @@ class FilmDbStorageTest {
         filmStorage.addLike(filmId2, userId1);
         filmStorage.addLike(filmId2, userId2);
         filmStorage.addLike(filmId1, userId2);
-        Assertions.assertEquals(filmId2, filmStorage.getPopularFilms(10).get(0).getId());
+        Assertions.assertEquals(filmId2, filmStorage.getPopularFilms(10, 0, 0).get(0).getId());
         Assertions.assertEquals(2, filmStorage.findAll().size());
 
         filmStorage.delete(filmId2);
-        Assertions.assertEquals(filmId1, filmStorage.getPopularFilms(10).get(0).getId());
+        Assertions.assertEquals(filmId1, filmStorage.getPopularFilms(10, 0, 0).get(0).getId());
         Assertions.assertEquals(1, filmStorage.findAll().size());
 
     }
