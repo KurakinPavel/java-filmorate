@@ -192,11 +192,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public void delete(int filmId) {
-        String sqlLikes = "DELETE FROM LIKES WHERE FILM_ID = ? ;";
-        String sqlGenres = "DELETE FROM FILM_GENRES WHERE FILM_ID = ? ;";
-        jdbcTemplate.update(sqlLikes, filmId);
-        jdbcTemplate.update(sqlGenres, filmId);
-        //добавить удаление отзывов на фильм
+        String sqlFilmDirector = "DELETE FROM FILM_DIRECTOR WHERE FILM_ID = ? ;";
+        jdbcTemplate.update(sqlFilmDirector, filmId);
         String sqlFilms = "DELETE FROM FILMS WHERE FILM_ID = ? ;";
         int linesDelete = jdbcTemplate.update(sqlFilms, filmId);
         if (linesDelete > 0) {
