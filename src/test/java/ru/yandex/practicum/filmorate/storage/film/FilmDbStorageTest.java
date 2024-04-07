@@ -30,7 +30,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm);
         Film savedFilm = filmStorage.getFilm(newFilm.getId());
         Assertions.assertEquals(savedFilm, newFilm, "Созданный и извлечённый объекты не совпадают");
@@ -46,7 +46,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
 
         Mpa mpa2 = new Mpa(2, "PG");
@@ -56,7 +56,7 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm2);
 
         List<Film> films = filmStorage.findAll();
@@ -88,7 +88,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
         int filmId1 = newFilm1.getId();
 
@@ -99,12 +99,12 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(0, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm2);
         int filmId2 = newFilm2.getId();
 
         Film newFilm3 = new Film(0, "Film3", "film 3 is 3 film of 3 film great 3 film 3",
-                LocalDate.of(1999, 3, 5), 100, mpa2, genres2);
+                LocalDate.of(1999, 3, 5), 100, mpa2, genres2, new ArrayList<>());
         filmStorage.create(newFilm3);
         int filmId3 = newFilm3.getId();
 
@@ -115,7 +115,7 @@ class FilmDbStorageTest {
         filmStorage.addLike(filmId3, userId3);
         filmStorage.addLike(filmId1, userId1);
 
-        List<Film> popularFilms1 = filmStorage.getPopularFilms(2);
+        List<Film> popularFilms1 = filmStorage.getPopularFilms(2, 0, 0);
         Assertions.assertEquals(2, popularFilms1.size(), "Количество полученных фильмов "
                 + "отличается от ожидаемого");
         Assertions.assertEquals(2, popularFilms1.get(0).getId(), "Ожидался другой наиболее "
@@ -123,13 +123,27 @@ class FilmDbStorageTest {
         Assertions.assertEquals(3, popularFilms1.get(1).getId(), "Ожидался другой второй по "
                 + "популярности фильм");
 
+        List<Film> popularFilms3 = filmStorage.getPopularFilms(10, 3, 0);
+        Assertions.assertEquals(3, popularFilms3.size(), "Количество полученных фильмов "
+                + "отличается от ожидаемого");
+        Assertions.assertEquals(2, popularFilms3.get(0).getId(), "Ожидался другой наиболее "
+                + "популярный фильм");
+        Assertions.assertEquals(3, popularFilms3.get(1).getId(), "Ожидался другой второй по "
+                + "популярности фильм");
+
+        List<Film> popularFilms4 = filmStorage.getPopularFilms(10, 4, 1999);
+        Assertions.assertEquals(1, popularFilms4.size(), "Количество полученных фильмов "
+                + "отличается от ожидаемого");
+        Assertions.assertEquals(3, popularFilms4.get(0).getId(), "Ожидался другой наиболее "
+                + "популярный фильм");
+
         filmStorage.removeLike(filmId2, userId1);
         filmStorage.removeLike(filmId2, userId2);
         filmStorage.removeLike(filmId3, userId2);
         filmStorage.removeLike(filmId3, userId3);
         filmStorage.addLike(filmId1, userId2);
 
-        List<Film> popularFilms2 = filmStorage.getPopularFilms(2);
+        List<Film> popularFilms2 = filmStorage.getPopularFilms(2, 0, 0);
         Assertions.assertEquals(1, popularFilms2.get(0).getId(), "Ожидался другой наиболее "
                 + "популярный фильм");
         Assertions.assertEquals(2, popularFilms2.get(1).getId(), "Ожидался другой второй по "
@@ -147,7 +161,7 @@ class FilmDbStorageTest {
         genres1.add(genre11);
         genres1.add(genre12);
         Film newFilm1 = new Film(0, "Film1", "film is film of film great film 1",
-                LocalDate.of(1990, 1, 1), 120, mpa1, genres1);
+                LocalDate.of(1990, 1, 1), 120, mpa1, genres1, new ArrayList<>());
         filmStorage.create(newFilm1);
         int id = newFilm1.getId();
 
@@ -158,7 +172,7 @@ class FilmDbStorageTest {
         genres2.add(genre21);
         genres2.add(genre22);
         Film newFilm2 = new Film(id, "Film2", "film 2 is film of 2 film great film 2",
-                LocalDate.of(1995, 2, 4), 110, mpa2, genres2);
+                LocalDate.of(1995, 2, 4), 110, mpa2, genres2, new ArrayList<>());
 
         filmStorage.update(newFilm2);
         Film updatedFilm = filmStorage.getFilm(id);
