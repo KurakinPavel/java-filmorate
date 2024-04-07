@@ -5,10 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.*;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -283,11 +280,25 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getRecommendedFilms(Integer id) {
-        String rowSortFilms = "SELECT FILM_ID FROM LIKES WHERE FILM_ID NOT IN (SELECT FILM_ID FROM LIKES WHERE USER_ID = ?) GROUP BY FILM_ID ORDER BY COUNT(FILM_ID) DESC";
+        SqlRowSet allRawConcatFilms = jdbcTemplate.queryForRowSet("SELECT USER_ID, GROUP_CONCAT(FILM_ID) AS ConcatFilms FROM LIKES WHERE USER_ID != ? GROUP BY USER_ID", id);
+        SqlRowSet userRawConcatFilms = jdbcTemplate.queryForRowSet("SELECT GROUP_CONCAT(FILM_ID) AS ConcatFilms FROM LIKES WHERE USER_ID = ?", id);
+        String column = "CONCATFILMS";
+        userRawConcatFilms.next();
+        String userConcatFilms = userRawConcatFilms.getString(column);
+
+        List<String> allConcatFilms = new ArrayList<>();
+        while (allRawConcatFilms.next()) {
+            if (allRawConcatFilms.getString(column).contains(userConcatFilms) &&
+                    allRawConcatFilms.getString(column) != userConcatFilms) {
+                allConcatFilms.add(allRawConcatFilms.getString(column));
+            }
+        }
+
         SqlRowSet recommendedFilmsRows = jdbcTemplate.queryForRowSet(
                 "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
-                        commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + rowSortFilms + ");", id
+                        commonPartOfQuery(true) + ") AS RESULT WHERE RESULT.FILM_ID IN (" + convertConcatFilmsFromString(allConcatFilms, userConcatFilms) + ");", id
         );
+
         return filmsParsing(recommendedFilmsRows);
     }
 
@@ -301,5 +312,16 @@ public class FilmDbStorage implements FilmStorage {
                 "where f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE fd2.DIRECTOR_ID = ?) " +
                 "ORDER BY " + sortBy, id);
         return filmsParsing(directorFilmsRows);
+    }
+
+    private String convertConcatFilmsFromString(List<String> allConcatFilms, String userConcatFilms) {
+        StringBuilder result = new StringBuilder("0");
+        if (!allConcatFilms.isEmpty()) {
+            for (String films : allConcatFilms) {
+                films = films.replaceFirst("1,2", "");
+                result.append(films);
+            }
+        }
+        return result.toString();
     }
 }
