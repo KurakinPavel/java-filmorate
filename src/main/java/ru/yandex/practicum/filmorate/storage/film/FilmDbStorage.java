@@ -44,7 +44,8 @@ public class FilmDbStorage implements FilmStorage {
      * Выборки, получаемые при выполнении вложенных запросов (см. выделение) - в файлах PARTIAL_EXECUTION 1, 2 и 3.
      */
     private String commonPartOfQuery(boolean withGenre) {
-        String genreString = withGenre ? " JOIN FILM_GENRES fg1 WHERE fg1.GENRE_ID = ? " : "";
+        String genreString = withGenre ? " JOIN FILM_GENRES fg1 ON fg1.FILM_ID = fg.FILM_ID" +
+                " WHERE fg1.GENRE_ID = ? " : "";
         String joinString = withGenre ? "RIGHT" : "LEFT";
         return "SELECT f.FILM_ID, f.NAME, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, m.MPA_ID, m.MPA, " +
                 "GENRES_FOR_PARSING, DIRECTORS_FOR_PARSING FROM FILMS f " + joinString + " JOIN (SELECT GROUP_CONCAT(ID_AND_GENRE SEPARATOR ';') AS " +
@@ -237,6 +238,8 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Map<String, String> addLike(int id, int userId) {
+        String sqlQuery = "DELETE FROM LIKES WHERE FILM_ID = ? AND USER_ID = ?";
+        jdbcTemplate.update(sqlQuery, id, userId);
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("LIKES")
                 .usingGeneratedKeyColumns("LIKE_ID");
