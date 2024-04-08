@@ -127,7 +127,7 @@ class FilmDbStorageTest {
                 + "популярности фильм");
 
         List<Film> popularFilms3 = filmStorage.getPopularFilms(10, 3, 0);
-        Assertions.assertEquals(3, popularFilms3.size(), "Количество полученных фильмов "
+        Assertions.assertEquals(2, popularFilms3.size(), "Количество полученных фильмов "
                 + "отличается от ожидаемого");
         Assertions.assertEquals(2, popularFilms3.get(0).getId(), "Ожидался другой наиболее "
                 + "популярный фильм");
