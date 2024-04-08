@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.*;
 import java.time.LocalDate;
 import java.util.*;
 
+import static ru.yandex.practicum.filmorate.model.Constants.*;
+
 @Slf4j
 @Component
 public class FilmDbStorage implements FilmStorage {
@@ -240,6 +242,7 @@ public class FilmDbStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("LIKE_ID");
         int returningKey = simpleJdbcInsert.executeAndReturnKey(likesToMap(id, userId)).intValue();
         if (returningKey > 0) {
+            addEvent(userId, id, ID_ADD);
             log.info("Пользователь с id {} поставил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " поставил лайк фильму с id " + id);
         } else {
@@ -260,6 +263,7 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "DELETE FROM LIKES WHERE FILM_ID = ? AND USER_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, userId);
         if (linesDelete > 0) {
+            addEvent(userId, id, ID_REMOVE);
             log.info("Пользователь с id {} удалил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " удалил лайк фильму с id " + id);
         } else {
@@ -283,9 +287,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
-        String commonIds = "SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE l1.USER_ID = ? AND l2.USER_ID = ?";
+        String commonIds = "SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE " +
+                "l1.USER_ID = ? AND l2.USER_ID = ?";
         SqlRowSet commonFilmsRows = jdbcTemplate.queryForRowSet(
-                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
+                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, " +
+                        "RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
                         commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + commonIds + ");", userId, friendId
         );
         return filmsParsing(commonFilmsRows);
@@ -293,9 +299,11 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getRecommendedFilms(Integer id) {
-        String rowSortFilms = "SELECT FILM_ID FROM LIKES WHERE FILM_ID NOT IN (SELECT FILM_ID FROM LIKES WHERE USER_ID = ?) GROUP BY FILM_ID ORDER BY COUNT(FILM_ID) DESC";
+        String rowSortFilms = "SELECT FILM_ID FROM LIKES WHERE FILM_ID NOT IN (SELECT FILM_ID FROM LIKES WHERE " +
+                "USER_ID = ?) GROUP BY FILM_ID ORDER BY COUNT(FILM_ID) DESC";
         SqlRowSet recommendedFilmsRows = jdbcTemplate.queryForRowSet(
-                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
+                "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, " +
+                        "RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
                         commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + rowSortFilms + ");", id
         );
         return filmsParsing(recommendedFilmsRows);
@@ -311,5 +319,12 @@ public class FilmDbStorage implements FilmStorage {
                 "where f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE fd2.DIRECTOR_ID = ?) " +
                 "ORDER BY " + sortBy, id);
         return filmsParsing(directorFilmsRows);
+    }
+
+    private void addEvent(int userId, int entityId, int operationId) {
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("EVENTS")
+                .usingGeneratedKeyColumns("EVENT_ID");
+        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_LIKE, operationId)).intValue();
     }
 }

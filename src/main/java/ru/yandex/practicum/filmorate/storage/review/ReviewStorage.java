@@ -7,9 +7,6 @@ import java.util.Map;
 
 public interface ReviewStorage {
 
-    int GRADE_ID_POSITIVE = 1;
-    int GRADE_ID_NEGATIVE = 0;
-
     Review create(Review review);
 
     Review update(Review review);
