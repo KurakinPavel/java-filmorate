@@ -1,7 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
 public final class Constants {
-    private Constants(){}
+    private Constants() {
+    }
 
     public static final int ID_POSITIVE = 1;
     public static final int ID_NEGATIVE = 0;
