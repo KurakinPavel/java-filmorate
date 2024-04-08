@@ -327,4 +327,19 @@ public class FilmDbStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("EVENT_ID");
         simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_LIKE, operationId)).intValue();
     }
+
+    @Override
+    public List<Film> searchByString(String subString, String sqlSubString, String type) {
+        String[] args;
+        if (type.equals("double"))
+            args = new String[]{"%" + subString + "%", "%" + subString + "%"};
+        else args = new String[]{"%" + subString + "%"};
+
+        SqlRowSet directorFilmsRows = jdbcTemplate.queryForRowSet(commonPartOfQuery() +
+                " LEFT JOIN (SELECT l.FILM_ID, COUNT(l.USER_ID) POPULARITY FROM LIKES l GROUP BY " +
+                "l.FILM_ID) AS POPULAR_FILMS ON f.FILM_ID = POPULAR_FILMS.FILM_ID " +
+                "where  " + sqlSubString +
+                " ORDER BY POPULAR_FILMS.POPULARITY DESC", args);
+        return filmsParsing(directorFilmsRows);
+    }
 }

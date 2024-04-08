@@ -19,7 +19,7 @@ public interface FilmStorage {
 
     List<Film> getPopularFilms(int count, int genre, int year);
 
-    List<Film> getByDirector(int id, String sortBy);//SHTEFAN получение списка фильмов по режиссёру
+    List<Film> getByDirector(int id, String sortBy);
 
     Map<String, String> addLike(int id, int userId);
 
@@ -30,5 +30,8 @@ public interface FilmStorage {
     List<Film> getCommonFilms(int userId, int friendId);
 
     List<Film> getRecommendedFilms(Integer id);
+
+    List<Film> searchByString(String subString, String sqlSubString, String type);
+
 
 }

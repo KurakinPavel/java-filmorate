@@ -6,6 +6,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 import java.util.Map;
 
@@ -72,5 +73,11 @@ public class FilmController {
     @DeleteMapping("/{filmId}")
     public void deleteFilm(@PathVariable Integer filmId) {
         filmService.deleteFilm(filmId);
+    }
+
+    @GetMapping("/search")
+    public List<Film> getFilmsBySearchString(@RequestParam @NotBlank String query,
+                                             @RequestParam(defaultValue = "title") String by) {
+        return filmService.getFilmsBySearchString(query, by);
     }
 }
