@@ -108,4 +108,34 @@ public class FilmService {
     public void deleteFilm(int filmId) {
         filmStorage.delete(filmId);
     }
+
+    public List<Film> getFilmsBySearchString(String query, String by) {
+        String sqlSubString = "";
+        String searchType = "single";
+        String[] args = by.split(",");
+        if (args.length > 2)
+            throw new RuntimeException("Неверное количество аргументов поиска");
+        for (String arg : args) {
+            if (arg.equalsIgnoreCase("title")) {
+                if (sqlSubString.isBlank())
+                    sqlSubString = " F.NAME ILIKE ? ";
+                else {
+                    sqlSubString = sqlSubString.concat(" OR F.NAME ILIKE ? ");
+                    searchType = "double";
+                }
+            } else if (arg.equalsIgnoreCase("director")) {
+                if (sqlSubString.isBlank())
+                    sqlSubString = " f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE " +
+                            "fd2.DIRECTOR_ID IN (SELECT DIRECTOR_ID FROM DIRECTOR WHERE NAME ILIKE ?)) ";
+                else {
+                    sqlSubString = sqlSubString.concat(" OR f.FILM_ID IN (SELECT fd2.FILM_ID" +
+                            " FROM FILM_DIRECTOR fd2" +
+                            " WHERE fd2.DIRECTOR_ID IN (SELECT DIRECTOR_ID FROM DIRECTOR WHERE NAME ILIKE ?)) ");
+                    searchType = "double";
+                }
+
+            } else throw new RuntimeException("Неизвестный аргумент типа поиска");
+        }
+        return filmStorage.searchByString(query, sqlSubString, searchType);
+    }
 }
