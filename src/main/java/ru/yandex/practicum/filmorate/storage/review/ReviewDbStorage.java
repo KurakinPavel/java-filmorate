@@ -99,7 +99,7 @@ public class ReviewDbStorage implements ReviewStorage {
         List<Review> reviews = new ArrayList<>();
         while (reviewRows.next()) {
             Review review = new Review(
-                    Integer.parseInt(Objects.requireNonNull(reviewRows.getString("REVIEW_ID"))),
+                    reviewRows.getInt("REVIEW_ID"),
                     reviewRows.getString("CONTENT"),
                     Boolean.parseBoolean(reviewRows.getString("DIRECTION")),
                     Integer.parseInt(Objects.requireNonNull(reviewRows.getString("USER_ID"))),
