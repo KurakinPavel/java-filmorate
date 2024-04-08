@@ -7,10 +7,13 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
+
+import static ru.yandex.practicum.filmorate.model.Constants.*;
 
 @Slf4j
 @Component
@@ -95,6 +98,7 @@ public class UserDbStorage implements UserStorage {
                 .usingGeneratedKeyColumns("FRIENDS_ID");
         int returningKey = simpleJdbcInsert.executeAndReturnKey(friendsToMap(id, friendId)).intValue();
         if (returningKey > 0) {
+            addEvent(id, friendId, ID_ADD);
             log.info("Пользователь с id {} добавился в друзья к пользователю с id {}", id, friendId);
             return Map.of("result", "Пользователь с id " + id + " добавился в друзья к пользователю с id "
                     + friendId);
@@ -117,6 +121,7 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "DELETE FROM FRIENDS WHERE USER_ID = ? AND FRIEND_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, friendId);
         if (linesDelete > 0) {
+            addEvent(id, friendId, ID_REMOVE);
             log.info("Пользователь с id {} удалился из друзей у пользователя с id {}", id, friendId);
             return Map.of("result", "Пользователь с id " + id + " удалился из друзей у пользователя с id "
                     + friendId);
@@ -210,5 +215,38 @@ public class UserDbStorage implements UserStorage {
         } else {
             return friendsId;
         }
+    }
+
+    @Override
+    public List<Event> getEventsOfUser(int userId) {
+        getUser(userId);
+        List<Integer> oneUser = new ArrayList<>();
+        oneUser.add(userId);
+        String sql = "SELECT e.EVENT_ID, e.USER_ID, e.ENTITY_ID, e.TIME_STAMP, et.EVENT_TYPE, o.OPERATION " +
+                "FROM EVENTS e JOIN EVENT_TYPES et ON e.TYPE_ID = et.TYPE_ID " +
+                "JOIN OPERATIONS o ON e.OPERATION_ID = o.OPERATION_ID WHERE e.USER_ID IN (:values) ORDER BY e.EVENT_ID";
+        return userEvents(oneUser, sql);
+    }
+
+    private List<Event> userEvents(List<Integer> usersId, String sql) {
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+        MapSqlParameterSource parameters = new MapSqlParameterSource("values", usersId);
+
+        return namedParameterJdbcTemplate.query(
+                sql, parameters,
+                (rs, rowNow) -> new Event(
+                        rs.getInt("EVENT_ID"),
+                        rs.getInt("USER_ID"),
+                        rs.getInt("ENTITY_ID"),
+                        rs.getLong("TIME_STAMP"),
+                        rs.getString("EVENT_TYPE"),
+                        rs.getString("OPERATION")));
+    }
+
+    private void addEvent(int userId, int entityId, int operationId) {
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("EVENTS")
+                .usingGeneratedKeyColumns("EVENT_ID");
+        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_FRIEND, operationId)).intValue();
     }
 }

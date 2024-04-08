@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.model.*;
 import java.time.LocalDate;
 import java.util.*;
 
+import static ru.yandex.practicum.filmorate.model.Constants.*;
+
 @Slf4j
 @Component
 public class FilmDbStorage implements FilmStorage {
@@ -240,6 +242,7 @@ public class FilmDbStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("LIKE_ID");
         int returningKey = simpleJdbcInsert.executeAndReturnKey(likesToMap(id, userId)).intValue();
         if (returningKey > 0) {
+            addEvent(userId, id, ID_ADD);
             log.info("Пользователь с id {} поставил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " поставил лайк фильму с id " + id);
         } else {
@@ -260,6 +263,7 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "DELETE FROM LIKES WHERE FILM_ID = ? AND USER_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, userId);
         if (linesDelete > 0) {
+            addEvent(userId, id, ID_REMOVE);
             log.info("Пользователь с id {} удалил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " удалил лайк фильму с id " + id);
         } else {
@@ -311,5 +315,12 @@ public class FilmDbStorage implements FilmStorage {
                 "where f.FILM_ID IN (SELECT fd2.FILM_ID FROM FILM_DIRECTOR fd2 WHERE fd2.DIRECTOR_ID = ?) " +
                 "ORDER BY " + sortBy, id);
         return filmsParsing(directorFilmsRows);
+    }
+
+    private void addEvent(int userId, int entityId, int operationId) {
+        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
+                .withTableName("EVENTS")
+                .usingGeneratedKeyColumns("EVENT_ID");
+        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_LIKE, operationId)).intValue();
     }
 }
