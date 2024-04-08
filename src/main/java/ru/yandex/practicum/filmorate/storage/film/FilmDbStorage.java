@@ -269,6 +269,19 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    public void delete(int filmId) {
+        String sqlFilmDirector = "DELETE FROM FILM_DIRECTOR WHERE FILM_ID = ? ;";
+        jdbcTemplate.update(sqlFilmDirector, filmId);
+        String sqlFilms = "DELETE FROM FILMS WHERE FILM_ID = ? ;";
+        int linesDelete = jdbcTemplate.update(sqlFilms, filmId);
+        if (linesDelete > 0) {
+            log.info("Фильм с id {} удален", filmId);
+        } else {
+            throw new NoSuchElementException("Ошибка при удалении. Фильм с id " + filmId + " не найден.");
+        }
+    }
+
+    @Override
     public List<Film> getCommonFilms(int userId, int friendId) {
         String commonIds = "SELECT l1.FILM_ID FROM LIKES l1 JOIN LIKES l2 ON l1.FILM_ID = l2.FILM_ID WHERE l1.USER_ID = ? AND l2.USER_ID = ?";
         SqlRowSet commonFilmsRows = jdbcTemplate.queryForRowSet(

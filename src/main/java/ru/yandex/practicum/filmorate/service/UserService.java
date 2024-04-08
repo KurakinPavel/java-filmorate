@@ -50,6 +50,10 @@ public class UserService {
         return userStorage.getCommonFriends(id, otherId);
     }
 
+    public void deleteUser(int userId) {
+        userStorage.delete(userId);
+    }
+
     public List<Film> getRecommendedFilms(Integer id) {
         return filmStorage.getRecommendedFilms(id);
     }

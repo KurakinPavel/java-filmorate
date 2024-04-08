@@ -104,4 +104,8 @@ public class FilmService {
 
 
     }
+
+    public void deleteFilm(int filmId) {
+        filmStorage.delete(filmId);
+    }
 }

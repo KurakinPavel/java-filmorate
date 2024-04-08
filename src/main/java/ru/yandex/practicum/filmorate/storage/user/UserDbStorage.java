@@ -177,6 +177,17 @@ public class UserDbStorage implements UserStorage {
         return someUsers(commonFriendsId);
     }
 
+    @Override
+    public void delete(int userId) {
+        String sqlUsers = "DELETE FROM USERS WHERE USER_ID = ? ";
+        int linesDelete = jdbcTemplate.update(sqlUsers, userId);
+        if (linesDelete > 0) {
+            log.info("Пользователь с id {} удален", userId);
+        } else {
+            throw new NoSuchElementException("Ошибка при удалении. Пользователь с id " + userId + " не найден.");
+        }
+    }
+
     private Set<Integer> getFriendsId(int id) {
         Set<Integer> friendsId = new HashSet<>();
         int lineCounter = 0;
