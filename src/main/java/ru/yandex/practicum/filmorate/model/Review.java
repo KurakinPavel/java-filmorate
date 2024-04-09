@@ -9,9 +9,6 @@ import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ru.yandex.practicum.filmorate.model.Constants.ID_NEGATIVE;
-import static ru.yandex.practicum.filmorate.model.Constants.ID_POSITIVE;
-
 @Slf4j
 @Data
 public class Review {
@@ -44,17 +41,12 @@ public class Review {
         return filmId;
     }
 
-    public Map<String, Object> reviewToMap() {
+    public Map<String, Object> reviewToMap(int directionIdFromDB) {
         Map<String, Object> values = new HashMap<>();
         values.put("CONTENT", content);
         values.put("USER_ID", userId);
         values.put("FILM_ID", filmId);
-        values.put("DIRECTION_ID", setDirectionId(isPositive));
+        values.put("DIRECTION_ID", directionIdFromDB);
         return values;
-    }
-
-    public int setDirectionId(Boolean isPositive) {
-        if (!isPositive) return ID_NEGATIVE;
-        return ID_POSITIVE;
     }
 }

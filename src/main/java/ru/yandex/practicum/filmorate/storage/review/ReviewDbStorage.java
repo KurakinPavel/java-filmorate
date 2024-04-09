@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.review;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -26,11 +27,26 @@ public class ReviewDbStorage implements ReviewStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("REVIEWS")
                 .usingGeneratedKeyColumns("REVIEW_ID");
-        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.reviewToMap()).intValue());
+        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.reviewToMap(getDirectionIdFromDB(review.getIsPositive()))).intValue());
         log.info("Добавлен новый отзыв с id {}", review.getReviewId());
         Review createdReview = getReview(review.getReviewId());
         addEvent(createdReview.getUserId(), createdReview.getReviewId(), ID_ADD);
         return createdReview;
+    }
+
+    private int getDirectionIdFromDB(Boolean isPositive) {
+        String directionOfReview = String.valueOf(isPositive);
+        int directionIdFromDB = 0;
+        String sql = "SELECT DIRECTION_ID FROM DIRECTIONS WHERE DIRECTION = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, directionOfReview);
+            if (g != null) {
+                directionIdFromDB = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для характера ревью " + directionOfReview + " не найден");
+        }
+        return directionIdFromDB;
     }
 
     @Override
@@ -43,7 +59,7 @@ public class ReviewDbStorage implements ReviewStorage {
                     "CONTENT = ?, DIRECTION_ID = ? WHERE REVIEW_ID = ?";
             int linesChanged = jdbcTemplate.update(sqlQuery,
                     review.getContent(),
-                    review.setDirectionId(review.getIsPositive()),
+                    getDirectionIdFromDB(review.getIsPositive()),
                     review.getReviewId());
             if (linesChanged > 0) {
                 createdOrUpdatedReview = getReview(review.getReviewId());
@@ -93,7 +109,7 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     private String commonPartOfQuery() {
-        return "SELECT r.REVIEW_ID, r.USER_ID, r.FILM_ID, r.CONTENT, d.DIRECTION, COALESCE(SUM(g.GRADE), 0) AS USEFUL "
+        return "SELECT r.REVIEW_ID, r.USER_ID, r.FILM_ID, r.CONTENT, d.DIRECTION, SUM(COALESCE(g.GRADE, 0)) AS USEFUL "
                 + "FROM REVIEWS r LEFT JOIN DIRECTIONS d ON r.DIRECTION_ID = d.DIRECTION_ID " +
                                "LEFT JOIN OPINIONS o ON r.REVIEW_ID = o.REVIEW_ID " +
                                "LEFT JOIN GRADES g ON o.GRADE_ID = g.GRADE_ID " +
@@ -120,7 +136,7 @@ public class ReviewDbStorage implements ReviewStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("OPINIONS")
                 .usingGeneratedKeyColumns("OPINION_ID");
-        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, ID_POSITIVE))
+        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, GRADE_POSITIVE))
                 .intValue();
         if (returningKey > 0) {
             log.info("Пользователь с id {} положительно оценил отзыв с id {}", userId, reviewId);
@@ -137,7 +153,7 @@ public class ReviewDbStorage implements ReviewStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("OPINIONS")
                 .usingGeneratedKeyColumns("OPINION_ID");
-        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, ID_NEGATIVE))
+        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, GRADE_NEGATIVE))
                 .intValue();
         if (returningKey > 0) {
             log.info("Пользователь с id {} отрицательно оценил отзыв с id {}", userId, reviewId);
@@ -149,12 +165,26 @@ public class ReviewDbStorage implements ReviewStorage {
         }
     }
 
-    private Map<String, Integer> opinionsToMap(int reviewId, int userId, int gradeId) {
+    private Map<String, Integer> opinionsToMap(int reviewId, int userId, int grade) {
         Map<String, Integer> values = new HashMap<>();
         values.put("REVIEW_ID", reviewId);
         values.put("USER_ID", userId);
-        values.put("GRADE_ID", gradeId);
+        values.put("GRADE_ID", getGradeIdFromDB(grade));
         return values;
+    }
+
+    private int getGradeIdFromDB(int grade) {
+        int gradeId = 0;
+        String sql = "SELECT GRADE_ID FROM GRADES WHERE GRADE = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, grade);
+            if (g != null) {
+                gradeId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для значения grade " + grade + " не найден");
+        }
+        return gradeId;
     }
 
     @Override
@@ -174,7 +204,22 @@ public class ReviewDbStorage implements ReviewStorage {
     private void addEvent(int userId, int entityId, int operationId) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("EVENTS")
-                .usingGeneratedKeyColumns("EVENT_ID");
-        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_REVIEW, operationId)).intValue();
+                .usingGeneratedKeyColumns("EVENT_ID", "TIME_STAMP");
+        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId,
+                getEventTypeIdFromDB(REVIEW_EVENT_TYPE), operationId)).intValue();
+    }
+
+    private int getEventTypeIdFromDB(String event) {
+        int eventTypeId = 0;
+        String sql = "SELECT TYPE_ID FROM EVENT_TYPES WHERE EVENT_TYPE = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, event);
+            if (g != null) {
+                eventTypeId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для события " + event + " не найден");
+        }
+        return eventTypeId;
     }
 }

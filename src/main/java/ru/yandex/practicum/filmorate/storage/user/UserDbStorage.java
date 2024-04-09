@@ -246,7 +246,7 @@ public class UserDbStorage implements UserStorage {
     private void addEvent(int userId, int entityId, int operationId) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("EVENTS")
-                .usingGeneratedKeyColumns("EVENT_ID");
+                .usingGeneratedKeyColumns("EVENT_ID", "TIME_STAMP");
         simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_FRIEND, operationId)).intValue();
     }
 }

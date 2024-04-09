@@ -5,10 +5,10 @@ MERGE INTO MPA (MPA_ID, MPA) KEY (MPA_ID)
 VALUES (1, 'G'), (2, 'PG'), (3, 'PG-13'), (4, 'R'), (5, 'NC-17');
 
 MERGE INTO DIRECTIONS (DIRECTION_ID, DIRECTION, DESCRIPTION) KEY (DIRECTION_ID)
-VALUES (0, 'false', 'negative'), (1, 'true', 'positive');
+VALUES (1, 'false', 'negative'), (2, 'true', 'positive');
 
 MERGE INTO GRADES (GRADE_ID, GRADE, DESCRIPTION) KEY (GRADE_ID)
-VALUES (0, -1, 'negative'), (1, 1, 'positive');
+VALUES (1, -1, 'negative'), (2, 1, 'positive');
 
 MERGE INTO EVENT_TYPES (TYPE_ID, EVENT_TYPE) KEY (TYPE_ID)
 VALUES (1, 'LIKE'), (2, 'REVIEW'), (3, 'FRIEND');
