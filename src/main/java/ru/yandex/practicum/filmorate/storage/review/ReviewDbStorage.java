@@ -11,8 +11,6 @@ import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.*;
 
-import static ru.yandex.practicum.filmorate.model.Constants.*;
-
 @Slf4j
 @Component
 public class ReviewDbStorage implements ReviewStorage {
@@ -27,7 +25,8 @@ public class ReviewDbStorage implements ReviewStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("REVIEWS")
                 .usingGeneratedKeyColumns("REVIEW_ID");
-        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.reviewToMap(getDirectionIdFromDB(review.getIsPositive()))).intValue());
+        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.
+                reviewToMap(getDirectionIdFromDB(review.getIsPositive()))).intValue());
         log.info("Добавлен новый отзыв с id {}", review.getReviewId());
         Review createdReview = getReview(review.getReviewId());
         addEvent(createdReview.getUserId(), createdReview.getReviewId(), getOperationIdFromDB("ADD"));
@@ -63,7 +62,8 @@ public class ReviewDbStorage implements ReviewStorage {
                     review.getReviewId());
             if (linesChanged > 0) {
                 createdOrUpdatedReview = getReview(review.getReviewId());
-                addEvent(createdOrUpdatedReview.getUserId(), createdOrUpdatedReview.getReviewId(), getOperationIdFromDB("UPDATE"));
+                addEvent(createdOrUpdatedReview.getUserId(), createdOrUpdatedReview.getReviewId(),
+                        getOperationIdFromDB("UPDATE"));
                 log.info("Обновлены данные отзыва с id {}", review.getReviewId());
             } else {
                 throw new NoSuchElementException("Отзыв с id " + review.getReviewId()
@@ -132,15 +132,15 @@ public class ReviewDbStorage implements ReviewStorage {
     }
 
     @Override
-    public Map<String, String> addOpinionPositive(int reviewId, int userId) {
+    public Map<String, String> addOpinion(int reviewId, int userId, int value) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("OPINIONS")
                 .usingGeneratedKeyColumns("OPINION_ID");
-        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, GRADE_POSITIVE))
+        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, value))
                 .intValue();
         if (returningKey > 0) {
-            log.info("Пользователь с id {} положительно оценил отзыв с id {}", userId, reviewId);
-            return Map.of("result", "Пользователь с id " + userId + " положительно оценил отзыв с id "
+            log.info("Пользователь с id {} добавил оценку отзыву с id {}", userId, reviewId);
+            return Map.of("result", "Пользователь с id " + userId + " добавил оценку отзыву с id "
                     + reviewId);
         } else {
             throw new NoSuchElementException("Пользователь с id " + userId + " или отзыв с id " + reviewId +
@@ -148,28 +148,11 @@ public class ReviewDbStorage implements ReviewStorage {
         }
     }
 
-    @Override
-    public Map<String, String> addOpinionNegative(int reviewId, int userId) {
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("OPINIONS")
-                .usingGeneratedKeyColumns("OPINION_ID");
-        int returningKey = simpleJdbcInsert.executeAndReturnKey(opinionsToMap(reviewId, userId, GRADE_NEGATIVE))
-                .intValue();
-        if (returningKey > 0) {
-            log.info("Пользователь с id {} отрицательно оценил отзыв с id {}", userId, reviewId);
-            return Map.of("result", "Пользователь с id " + userId + " отрицательно оценил отзыв с id "
-                    + reviewId);
-        } else {
-            throw new NoSuchElementException("Пользователь с id " + userId + " или отзыв с id " + reviewId +
-                    " не найдены. Добавление оценки отзыва отклонено.");
-        }
-    }
-
-    private Map<String, Integer> opinionsToMap(int reviewId, int userId, int grade) {
+    private Map<String, Integer> opinionsToMap(int reviewId, int userId, int value) {
         Map<String, Integer> values = new HashMap<>();
         values.put("REVIEW_ID", reviewId);
         values.put("USER_ID", userId);
-        values.put("GRADE_ID", getGradeIdFromDB(grade));
+        values.put("GRADE_ID", getGradeIdFromDB(value));
         return values;
     }
 
