@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -9,8 +10,6 @@ import ru.yandex.practicum.filmorate.model.*;
 
 import java.time.LocalDate;
 import java.util.*;
-
-import static ru.yandex.practicum.filmorate.model.Constants.*;
 
 @Slf4j
 @Component
@@ -245,7 +244,7 @@ public class FilmDbStorage implements FilmStorage {
                 .usingGeneratedKeyColumns("LIKE_ID");
         int returningKey = simpleJdbcInsert.executeAndReturnKey(likesToMap(id, userId)).intValue();
         if (returningKey > 0) {
-            addEvent(userId, id, ID_ADD);
+            addEvent(userId, id, getOperationIdFromDB("ADD"));
             log.info("Пользователь с id {} поставил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " поставил лайк фильму с id " + id);
         } else {
@@ -266,7 +265,7 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "DELETE FROM LIKES WHERE FILM_ID = ? AND USER_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, userId);
         if (linesDelete > 0) {
-            addEvent(userId, id, ID_REMOVE);
+            addEvent(userId, id, getOperationIdFromDB("REMOVE"));
             log.info("Пользователь с id {} удалил лайк фильму с id {}", userId, id);
             return Map.of("result", "Пользователь с id " + userId + " удалил лайк фильму с id " + id);
         } else {
@@ -327,8 +326,8 @@ public class FilmDbStorage implements FilmStorage {
     private void addEvent(int userId, int entityId, int operationId) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("EVENTS")
-                .usingGeneratedKeyColumns("EVENT_ID");
-        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_LIKE, operationId)).intValue();
+                .usingGeneratedKeyColumns("EVENT_ID", "TIME_STAMP");
+        simpleJdbcInsert.execute(Event.eventToMap(userId, entityId, getEventTypeIdFromDB("LIKE"), operationId));
     }
 
     @Override
@@ -344,5 +343,33 @@ public class FilmDbStorage implements FilmStorage {
                 "where  " + sqlSubString +
                 " ORDER BY POPULAR_FILMS.POPULARITY DESC", args);
         return filmsParsing(directorFilmsRows);
+    }
+
+    private int getEventTypeIdFromDB(String event) {
+        int eventTypeId = 0;
+        String sql = "SELECT TYPE_ID FROM EVENT_TYPES WHERE EVENT_TYPE = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, event);
+            if (g != null) {
+                eventTypeId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для события " + event + " не найден");
+        }
+        return eventTypeId;
+    }
+
+    private int getOperationIdFromDB(String operation) {
+        int operationId = 0;
+        String sql = "SELECT OPERATION_ID FROM OPERATIONS WHERE OPERATION = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, operation);
+            if (g != null) {
+                operationId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для операции " + operationId + " не найден");
+        }
+        return operationId;
     }
 }

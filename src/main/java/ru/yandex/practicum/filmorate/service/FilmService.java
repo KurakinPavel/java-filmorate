@@ -100,7 +100,7 @@ public class FilmService {
             return filmStorage.getByDirector(id, " f.RELEASE_DATE ASC");
         else if (sortBy.equals("likes"))
             return filmStorage.getByDirector(id, " POPULAR_FILMS.POPULARITY DESC");
-        else throw new IllegalArgumentException("Неправильный формат сортировки");
+        else throw new IllegalArgumentException("Неправильный формат сортировки: " + sortBy);
 
 
     }
@@ -134,7 +134,7 @@ public class FilmService {
                     searchType = "double";
                 }
 
-            } else throw new RuntimeException("Неизвестный аргумент типа поиска");
+            } else throw new RuntimeException("Неизвестный аргумент типа поиска:" + arg);
         }
         return filmStorage.searchByString(query, sqlSubString, searchType);
     }
