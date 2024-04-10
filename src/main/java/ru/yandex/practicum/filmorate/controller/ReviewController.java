@@ -9,6 +9,8 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
+import static ru.yandex.practicum.filmorate.model.Constants.*;
+
 @RestController
 @RequestMapping("/reviews")
 public class ReviewController {
@@ -41,21 +43,21 @@ public class ReviewController {
 
     @GetMapping
     public List<Review> findAll(
-            @RequestParam(value = "filmId", defaultValue = "0", required = false) Integer filmId,
-            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
+            @RequestParam(value = "filmId", defaultValue = "0") Integer filmId,
+            @RequestParam(value = "count", defaultValue = "10") Integer count) {
         return reviewService.findAll(filmId, count);
     }
 
     @PutMapping("/{reviewId}/like/{userId}")
     public Map<String, String> addOpinionPositive(@PathVariable Integer reviewId,
                                                   @PathVariable Integer userId) {
-        return reviewService.addOpinionPositive(reviewId, userId);
+        return reviewService.addOpinion(reviewId, userId, GRADE_POSITIVE);
     }
 
     @PutMapping("/{reviewId}/dislike/{userId}")
     public Map<String, String> addOpinionNegative(@PathVariable Integer reviewId,
                                                   @PathVariable Integer userId) {
-        return reviewService.addOpinionNegative(reviewId, userId);
+        return reviewService.addOpinion(reviewId, userId, GRADE_NEGATIVE);
     }
 
     @DeleteMapping("/{reviewId}/like/{userId}")

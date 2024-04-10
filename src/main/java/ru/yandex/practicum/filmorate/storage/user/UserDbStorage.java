@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -12,8 +13,6 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
-
-import static ru.yandex.practicum.filmorate.model.Constants.*;
 
 @Slf4j
 @Component
@@ -98,7 +97,7 @@ public class UserDbStorage implements UserStorage {
                 .usingGeneratedKeyColumns("FRIENDS_ID");
         int returningKey = simpleJdbcInsert.executeAndReturnKey(friendsToMap(id, friendId)).intValue();
         if (returningKey > 0) {
-            addEvent(id, friendId, ID_ADD);
+            addEvent(id, friendId, getOperationIdFromDB("ADD"));
             log.info("Пользователь с id {} добавился в друзья к пользователю с id {}", id, friendId);
             return Map.of("result", "Пользователь с id " + id + " добавился в друзья к пользователю с id "
                     + friendId);
@@ -121,7 +120,7 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "DELETE FROM FRIENDS WHERE USER_ID = ? AND FRIEND_ID = ?";
         int linesDelete = jdbcTemplate.update(sqlQuery, id, friendId);
         if (linesDelete > 0) {
-            addEvent(id, friendId, ID_REMOVE);
+            addEvent(id, friendId, getOperationIdFromDB("REMOVE"));
             log.info("Пользователь с id {} удалился из друзей у пользователя с id {}", id, friendId);
             return Map.of("result", "Пользователь с id " + id + " удалился из друзей у пользователя с id "
                     + friendId);
@@ -246,7 +245,35 @@ public class UserDbStorage implements UserStorage {
     private void addEvent(int userId, int entityId, int operationId) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("EVENTS")
-                .usingGeneratedKeyColumns("EVENT_ID");
-        simpleJdbcInsert.executeAndReturnKey(Event.eventToMap(userId, entityId, ID_FRIEND, operationId)).intValue();
+                .usingGeneratedKeyColumns("EVENT_ID", "TIME_STAMP");
+        simpleJdbcInsert.execute(Event.eventToMap(userId, entityId, getEventTypeIdFromDB("FRIEND"), operationId));
+    }
+
+    private int getEventTypeIdFromDB(String event) {
+        int eventTypeId = 0;
+        String sql = "SELECT TYPE_ID FROM EVENT_TYPES WHERE EVENT_TYPE = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, event);
+            if (g != null) {
+                eventTypeId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для события " + event + " не найден");
+        }
+        return eventTypeId;
+    }
+
+    private int getOperationIdFromDB(String operation) {
+        int operationId = 0;
+        String sql = "SELECT OPERATION_ID FROM OPERATIONS WHERE OPERATION = ?";
+        try {
+            Integer g = jdbcTemplate.queryForObject(sql, Integer.class, operation);
+            if (g != null) {
+                operationId = g;
+            }
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchElementException("Ключ для операции " + operationId + " не найден");
+        }
+        return operationId;
     }
 }

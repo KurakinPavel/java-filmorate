@@ -17,9 +17,7 @@ public interface ReviewStorage {
 
     List<Review> findAll(int id, int count);
 
-    Map<String, String> addOpinionPositive(int reviewId, int userId);
-
-    Map<String, String> addOpinionNegative(int reviewId, int userId);
+    Map<String, String> addOpinion(int reviewId, int userId, int value);
 
     Map<String, String> removeOpinion(int reviewId, int userId);
 

@@ -22,7 +22,6 @@ public class Event {
         Map<String, Object> values = new HashMap<>();
         values.put("USER_ID", userId);
         values.put("ENTITY_ID", entityId);
-        values.put("TIME_STAMP", System.currentTimeMillis());
         values.put("TYPE_ID", typeId);
         values.put("OPERATION_ID", operationId);
         return values;
