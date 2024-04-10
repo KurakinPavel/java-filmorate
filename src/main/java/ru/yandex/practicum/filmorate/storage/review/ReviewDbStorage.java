@@ -25,8 +25,8 @@ public class ReviewDbStorage implements ReviewStorage {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("REVIEWS")
                 .usingGeneratedKeyColumns("REVIEW_ID");
-        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review.
-                reviewToMap(getDirectionIdFromDB(review.getIsPositive()))).intValue());
+        review.setReviewId(simpleJdbcInsert.executeAndReturnKey(review
+                .reviewToMap(getDirectionIdFromDB(review.getIsPositive()))).intValue());
         log.info("Добавлен новый отзыв с id {}", review.getReviewId());
         Review createdReview = getReview(review.getReviewId());
         addEvent(createdReview.getUserId(), createdReview.getReviewId(), getOperationIdFromDB("ADD"));
