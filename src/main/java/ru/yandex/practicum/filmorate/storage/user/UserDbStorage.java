@@ -14,8 +14,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.*;
 
-import static ru.yandex.practicum.filmorate.model.Constants.*;
-
 @Slf4j
 @Component
 public class UserDbStorage implements UserStorage {
