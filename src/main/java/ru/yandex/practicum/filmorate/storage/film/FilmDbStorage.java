@@ -301,34 +301,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getRecommendedFilms(Integer id) {
-        SqlRowSet rowLikesUser = jdbcTemplate.queryForRowSet("SELECT FILM_ID FROM LIKES WHERE USER_ID = ?", id);
-        Map<Integer, List<Integer>> allLikesWithoutUser = parseLikesInMap(id);
-        List<Integer> targetLikesUser = new ArrayList<>();
-        while (rowLikesUser.next()) {
-            targetLikesUser.add(rowLikesUser.getInt("FILM_ID"));
-        }
-        List<Map.Entry<Integer, Integer>> sortedUsers = searchComparisonLikes(allLikesWithoutUser, targetLikesUser);
-        for (List<Integer> value : allLikesWithoutUser.values()) {
-            value.removeAll(targetLikesUser);
-        }
-        StringBuilder result = new StringBuilder();
-        for (Map.Entry<Integer, Integer> sortedUserId : sortedUsers) {
-            List<Integer> filmsList = allLikesWithoutUser.get(sortedUserId.getKey());
-            if (!filmsList.isEmpty()) {
-                for (Integer filmId : filmsList) {
-                    if (result.length() > 0) {
-                        result.append(",").append(filmId);
-                    } else {
-                        result.append(filmId);
-                    }
-                }
-            }
-        }
-
         SqlRowSet recommendedFilmsRows = jdbcTemplate.queryForRowSet(
                 "SELECT RESULT.FILM_ID, RESULT.NAME, RESULT.DESCRIPTION, RESULT.RELEASE_DATE, RESULT.DURATION, " +
                         "RESULT.MPA_ID, RESULT.MPA, RESULT.GENRES_FOR_PARSING, RESULT.DIRECTORS_FOR_PARSING FROM (" +
-                        commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (" + result + ");"
+                        commonPartOfQuery() + ") AS RESULT WHERE RESULT.FILM_ID IN (SELECT FILM_ID FROM LIKES WHERE " +
+                        "USER_ID IN (SELECT l_other.USER_ID FROM LIKES l_other INNER JOIN (SELECT FILM_ID FROM LIKES " +
+                        "WHERE USER_ID = ?) l_user1 ON l_other.FILM_ID = l_user1.FILM_ID WHERE l_other.USER_ID != ? " +
+                        "GROUP BY l_other.USER_ID ORDER BY COUNT(l_other.FILM_ID) DESC) AND FILM_ID NOT IN " +
+                        "(SELECT FILM_ID FROM LIKES WHERE USER_ID = ?) GROUP BY FILM_ID);", id, id, id
         );
         return filmsParsing(recommendedFilmsRows);
     }
@@ -393,34 +373,5 @@ public class FilmDbStorage implements FilmStorage {
             throw new NoSuchElementException("Ключ для операции " + operationId + " не найден");
         }
         return operationId;
-    }
-
-    private Map<Integer, List<Integer>> parseLikesInMap(Integer id) {
-        SqlRowSet rowLikes = jdbcTemplate.queryForRowSet("SELECT FILM_ID, USER_ID FROM LIKES WHERE USER_ID != ?", id);
-        Map<Integer, List<Integer>> likes = new HashMap<>();
-        while (rowLikes.next()) {
-            int userId = rowLikes.getInt("USER_ID");
-            int filmId = rowLikes.getInt("FILM_ID");
-            likes.computeIfAbsent(userId, k -> new ArrayList<>()).add(filmId);
-        }
-        return likes;
-    }
-
-    private List<Map.Entry<Integer, Integer>> searchComparisonLikes(Map<Integer, List<Integer>> allLikesWithoutUser, List<Integer> targetLikesUser) {
-        Map<Integer, Integer> matchingCount = new HashMap<>();
-        for (Map.Entry<Integer, List<Integer>> entry : allLikesWithoutUser.entrySet()) {
-            List<Integer> likes = entry.getValue();
-            int count = 0;
-            for (Integer like : likes) {
-                if (targetLikesUser.contains(like)) {
-                    count++;
-                }
-            }
-            matchingCount.put(entry.getKey(), count);
-        }
-        List<Map.Entry<Integer, Integer>> sortedList = new ArrayList<>(matchingCount.entrySet());
-        sortedList.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
-
-        return sortedList;
     }
 }
