@@ -302,7 +302,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getRecommendedFilms(Integer id) {
         SqlRowSet rowLikesUser = jdbcTemplate.queryForRowSet("SELECT FILM_ID FROM LIKES WHERE USER_ID = ?", id);
-        Map<Integer, List<Integer>> allLikesWithoutUser = convertLikesInMap(id);
+        Map<Integer, List<Integer>> allLikesWithoutUser = parseLikesInMap(id);
         List<Integer> targetLikesUser = new ArrayList<>();
         while (rowLikesUser.next()) {
             targetLikesUser.add(rowLikesUser.getInt("FILM_ID"));
@@ -395,19 +395,15 @@ public class FilmDbStorage implements FilmStorage {
         return operationId;
     }
 
-    private Map<Integer, List<Integer>> convertLikesInMap(Integer id) {
-        SqlRowSet rowUsersLikes = jdbcTemplate.queryForRowSet("SELECT USER_ID FROM LIKES WHERE USER_ID != ? GROUP BY USER_ID", id);
-        Map<Integer, List<Integer>> usersAndFilms = new HashMap<>();
-        while (rowUsersLikes.next()) {
-            Integer userId = rowUsersLikes.getInt("USER_ID");
-            List<Integer> filmIds = new ArrayList<>();
-            SqlRowSet rowFilmsFromUser = jdbcTemplate.queryForRowSet("SELECT FILM_ID FROM LIKES WHERE USER_ID = ?", userId);
-            while (rowFilmsFromUser.next()) {
-                filmIds.add(rowFilmsFromUser.getInt("FILM_ID"));
-            }
-            usersAndFilms.put(userId, filmIds);
+    private Map<Integer, List<Integer>> parseLikesInMap(Integer id) {
+        SqlRowSet rowLikes = jdbcTemplate.queryForRowSet("SELECT FILM_ID, USER_ID FROM LIKES WHERE USER_ID != ?", id);
+        Map<Integer, List<Integer>> likes = new HashMap<>();
+        while (rowLikes.next()) {
+            int userId = rowLikes.getInt("USER_ID");
+            int filmId = rowLikes.getInt("FILM_ID");
+            likes.computeIfAbsent(userId, k -> new ArrayList<>()).add(filmId);
         }
-        return usersAndFilms;
+        return likes;
     }
 
     private List<Map.Entry<Integer, Integer>> searchComparisonLikes(Map<Integer, List<Integer>> allLikesWithoutUser, List<Integer> targetLikesUser) {
