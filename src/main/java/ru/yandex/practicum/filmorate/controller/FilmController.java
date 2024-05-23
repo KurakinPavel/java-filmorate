@@ -6,7 +6,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.util.*;
+import javax.validation.constraints.NotBlank;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
@@ -51,7 +53,31 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") Integer count) {
-        return filmService.getPopularFilms(count);
+    public List<Film> getPopularWithGenreAndYear(@RequestParam(defaultValue = "10") Integer count,
+                                                 @RequestParam(defaultValue = "0") Integer genreId,
+                                                 @RequestParam(defaultValue = "0") Integer year) {
+        return filmService.getPopularFilms(count, genreId, year);
+    }
+
+    @GetMapping("/common")
+    public List<Film> getCommon(@RequestParam("userId") Integer userId,
+                                @RequestParam("friendId") Integer friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{id}") //SHTEFAN добавление режиссёров
+    public List<Film> getByDirector(@RequestParam(defaultValue = "year") String sortBy, @PathVariable Integer id) {
+        return filmService.getByDirector(id, sortBy);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void deleteFilm(@PathVariable Integer filmId) {
+        filmService.deleteFilm(filmId);
+    }
+
+    @GetMapping("/search")
+    public List<Film> getFilmsBySearchString(@RequestParam @NotBlank String query,
+                                             @RequestParam(defaultValue = "title") String by) {
+        return filmService.getFilmsBySearchString(query, by);
     }
 }
